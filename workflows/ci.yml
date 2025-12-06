@@ -1,0 +1,69 @@
+name: CI Pipeline  
+
+on:
+  push:
+    branches: [ main, develop ]  
+  pull_request:
+    branches: [ main ]  
+
+jobs:
+  test-backend:  
+    runs-on: ubuntu-latest 
+    steps:
+      - uses: actions/checkout@v4  
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      - name: Lint with flake8
+        run: |
+          cd backend
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      - name: Test with pytest
+        run: |
+          cd backend
+          pytest -v  # Запуск тестів з verbose
+
+  test-frontend: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci  # Clean install
+      - name: Lint with ESLint
+        run: |
+          cd frontend
+          npm run lint
+      - name: Test with Jest
+        run: |
+          cd frontend
+          npm test -- --coverage  # Тести з coverage
+
+  build:  
+    needs: [test-backend, test-frontend]  
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Backend
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          python -m build  # Build wheel
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build  # Next.js build
+      - name: Notify on Success
+        if: success()
+        run: echo "CI Passed! Ready for deploy."
