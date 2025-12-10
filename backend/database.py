@@ -50,6 +50,7 @@ class Transaction(Base):
     amount = Column(Numeric(10, 2))
     type = Column(String(20))  
     category = Column(String(50))
+    provider = Column(String(20), default="nanonets")
     description = Column(Text)
     invoice_id = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
