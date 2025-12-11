@@ -7,9 +7,15 @@ import os
 from datetime import datetime
 import tempfile  
 import re 
+from openai import OpenAI
+import json
+import logging
 
 from database import get_db, User, Transaction
 from auth import get_current_user
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -25,6 +31,18 @@ class UploadResponse(BaseModel):
     date: str
     invoice_id: str
     verified: bool = True
+    
+class AdviceRequest(BaseModel):
+    full_text: str  
+    user_region: str  
+    user_family_status: str 
+
+class AdviceResponse(BaseModel):
+    advice: str
+    deductions: dict  
+    category: str  
+    estimated_tax: float
+    confidence: float
 
 @router.post("/upload", response_model=List[UploadResponse])
 async def upload_invoices(
@@ -48,15 +66,17 @@ async def upload_invoices(
         try:
            
             result = extractor.extract(temp_path)
-            full_text = str(result)  
-            
-            
+            full_text = str(result)
+            print("DEBUG FULL_TEXT:", full_text)
+            print("FULL_TEXT FOR ADVICE:", full_text)
+
             fields = result.extract_data(
                 specified_fields=[
                     "total_amount", "due_date", "vendor_name", "invoice_number",
                     "line_items", "description"
                 ]
             )
+            print("DEBUG FIELDS:", fields)
             
             content = fields.get('extracted_fields', {}).get('content', {})
             metadata = fields.get('extracted_fields', {}).get('metadata', {})
@@ -118,3 +138,50 @@ async def upload_invoices(
             os.unlink(temp_path)
     
     return results
+
+client = OpenAI(
+    api_key=os.getenv("GROK_API_KEY"),
+    base_url="https://api.x.ai/v1",
+)
+
+@router.post("/advice", response_model=AdviceResponse)
+async def get_ai_advice(
+    request: AdviceRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    prompt = f"""
+    You are a tax advisor for Spanish autónomos. Analyze this invoice text and give advice for IRPF/IVA deductions.
+    User: {current_user.full_name}, region: {request.user_region}, family_status: {request.user_family_status}, children: {current_user.num_children}.
+    Invoice text: {request.full_text}
+    
+    Extract and advise:
+    - Category: deductible/non-deductible (e.g., office supplies deductible).
+    - Deductions: IRPF % (21-47%), IVA reclaim % (21% for services).
+    - Estimated tax owed: calculate based on amount.
+    - Advice: 2-3 sentences on how to report (e.g., "Deduct 21% IRPF for business expense in Q4 2025").
+    
+    Respond in JSON only:
+    {{
+      "advice": "Short advice text",
+      "deductions": {{"IRPF": 21, "IVA": 10}},
+      "category": "deductible",
+      "estimated_tax": 195.75,
+      "confidence": 0.95
+    }}
+    """
+    
+    response = client.chat.completions.create(
+        model="grok-3",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1,
+        max_tokens=300
+    )
+    
+    advice_json = response.choices[0].message.content.strip()
+    try:
+        parsed = json.loads(advice_json)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Grok response invalid JSON")
+    
+    return AdviceResponse(**parsed)
