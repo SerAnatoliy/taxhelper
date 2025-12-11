@@ -4,7 +4,7 @@ from typing import List
 from pydantic import BaseModel
 from docstrange import DocumentExtractor  
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import tempfile  
 import re 
 from openai import OpenAI
@@ -42,6 +42,16 @@ class AdviceResponse(BaseModel):
     deductions: dict  
     category: str  
     estimated_tax: float
+    confidence: float
+    
+class GeneralAdviceRequest(BaseModel):
+    query: str
+    
+class GeneralAdviceResponse(BaseModel):
+    advice: str
+    deductions: dict
+    estimated_tax: float
+    suggestions: List[str]
     confidence: float
 
 @router.post("/upload", response_model=List[UploadResponse])
@@ -81,18 +91,18 @@ async def upload_invoices(
             content = fields.get('extracted_fields', {}).get('content', {})
             metadata = fields.get('extracted_fields', {}).get('metadata', {})
             
-            amount_str = content.get('total_amount', '0.0')
+            amount_str = str(content.get('total_amount', '0.0'))
             amount = float(amount_str.replace(',', '.')) if amount_str != '0.0' else 0.0
             
-            date_str = content.get('due_date', '')
+            date_str = str(content.get('due_date', ''))
             date = datetime.fromisoformat(date_str) if date_str else datetime.now()
-            
-            description = content.get('vendor_name', 'Unknown invoice')
+
+            description = str(content.get('vendor_name', 'Unknown invoice'))
             invoice_id = content.get('invoice_number', file.filename)
             
             line_items = content.get('line_items', [])
             if line_items:
-                items_desc = ", ".join([item.get('description', '') for item in line_items[:4]])  # Top 4
+                items_desc = ", ".join([str(item.get('description', '')) for item in line_items[:4]])  
                 description += f" | Items: {items_desc}"
             
             if amount == 0.0:
@@ -185,3 +195,65 @@ async def get_ai_advice(
         raise HTTPException(status_code=500, detail="Grok response invalid JSON")
     
     return AdviceResponse(**parsed)
+
+@router.post("/advice/general", response_model=GeneralAdviceResponse)
+async def get_general_tax_advice(
+    request: GeneralAdviceRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+   
+    from_date = datetime.now() - timedelta(days=180)
+    transactions = db.query(Transaction).filter(
+        Transaction.user_id == current_user.id,
+        Transaction.date >= from_date
+    ).all()
+    
+    
+    total_income = sum(t.amount for t in transactions if t.type == "income")
+    total_expenses = sum(t.amount for t in transactions if t.type == "expense")
+    recent_invoices = [t.description for t in transactions if t.type == "expense"][:5]  
+    
+    logger.info(f"User stats: Income {total_income}€, Expenses {total_expenses}€, Recent: {recent_invoices}")
+    
+    prompt = f"""
+    You are a tax advisor for Spanish autónomos. User asks: "{request.query}"
+    
+    User profile: {current_user.full_name}, region: {current_user.region}, family_status: {current_user.family_status}, children: {current_user.num_children}.
+    
+    Financials (last 6 months): Income {total_income}€, Expenses {total_expenses}€.
+    Recent invoices: {', '.join(recent_invoices)}.
+    
+    Provide advice:
+    - If user asks a question answer directly in one sentance.
+    - Advice: 3-5 sentences on how to reduce IRPF/IVA based on query.
+    - Deductions: % rates for IRPF/IVA based on region/income.
+    - Estimated tax: Calculate owed (income - expenses * deduction_rate).
+    - Suggestions: 3 bullet points (e.g., "Add more expenses for higher deduction").
+    
+    Respond in JSON only:
+    {{
+      "advice": "Detailed advice text",
+      "deductions": {{"IRPF": 21, "IVA": 10}},
+      "estimated_tax": 5000.0,
+      "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"],
+      "confidence": 0.95
+    }}
+    """
+    
+    response = client.chat.completions.create(
+        model="grok-3",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1,
+        max_tokens=400
+    )
+    
+    advice_json = response.choices[0].message.content.strip()
+    logger.info(f"Grok response for '{request.query}': {advice_json[:300]}...")
+    
+    try:
+        parsed = json.loads(advice_json)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Grok response invalid JSON")
+    
+    return GeneralAdviceResponse(**parsed)
