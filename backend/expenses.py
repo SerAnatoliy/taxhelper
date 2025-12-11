@@ -48,6 +48,7 @@ class GeneralAdviceRequest(BaseModel):
     query: str
     
 class GeneralAdviceResponse(BaseModel):
+    answer: str
     advice: str
     deductions: dict
     estimated_tax: float
@@ -202,19 +203,15 @@ async def get_general_tax_advice(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-   
     from_date = datetime.now() - timedelta(days=180)
     transactions = db.query(Transaction).filter(
         Transaction.user_id == current_user.id,
         Transaction.date >= from_date
     ).all()
-    
-    
-    total_income = sum(t.amount for t in transactions if t.type == "income")
     total_expenses = sum(t.amount for t in transactions if t.type == "expense")
-    recent_invoices = [t.description for t in transactions if t.type == "expense"][:5]  
+    recent_invoices = [t.description for t in transactions if t.type == "expense"][:5]
     
-    logger.info(f"User stats: Income {total_income}€, Expenses {total_expenses}€, Recent: {recent_invoices}")
+    logger.info(f"User stats: Income {total_income}€, Expenses {total_expenses}€")
     
     prompt = f"""
     You are a tax advisor for Spanish autónomos. User asks: "{request.query}"
@@ -224,16 +221,16 @@ async def get_general_tax_advice(
     Financials (last 6 months): Income {total_income}€, Expenses {total_expenses}€.
     Recent invoices: {', '.join(recent_invoices)}.
     
-    Provide advice:
-    - If user asks a question answer directly in one sentance.
-    - Advice: 3-5 sentences on how to reduce IRPF/IVA based on query.
-    - Deductions: % rates for IRPF/IVA based on region/income.
-    - Estimated tax: Calculate owed (income - expenses * deduction_rate).
-    - Suggestions: 3 bullet points (e.g., "Add more expenses for higher deduction").
+    Provide:
+    - answer: Direct answer to the query in 1-2 sentences.
+    - deductions: % rates for IRPF/IVA based on region/income.
+    - estimated_tax: Calculate owed (income - expenses * deduction_rate).
+    - suggestions: 3 bullet points.
     
     Respond in JSON only:
     {{
-      "advice": "Detailed advice text",
+      "answer": "Direct answer to '{request.query}'",
+      "advice": "General advice text",
       "deductions": {{"IRPF": 21, "IVA": 10}},
       "estimated_tax": 5000.0,
       "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"],
