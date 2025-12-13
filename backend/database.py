@@ -24,6 +24,9 @@ class User(Base):
     nie_dni = Column(String(20), nullable=True)  
     verified_kyc = Column(Boolean, default=False)  
     stripe_customer_id = Column(String(255), nullable=True)
+    stripe_subscription_id = Column(String(255), nullable=True)
+    subscription_status = Column(String(50), nullable=True)
+    subscription_end_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

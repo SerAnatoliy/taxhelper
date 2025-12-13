@@ -2,9 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from expenses import router as expenses_router
+import stripe
+import os
+from dotenv import load_dotenv
 
 
 app = FastAPI(title="TaxHelper API", version="0.1.0")
+load_dotenv()
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 # CORS
 app.add_middleware(
