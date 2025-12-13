@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Text, JSON, Numeric
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Text, JSON, Numeric, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import BYTEA 
@@ -21,7 +21,8 @@ class User(Base):
     family_status = Column(String(20))  
     num_children = Column(Integer, default=0)
     region = Column(String(50), index=True)
-    nie_dni = Column(BYTEA)
+    nie_dni = Column(String(20), nullable=True)  
+    verified_kyc = Column(Boolean, default=False)  
     stripe_customer_id = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
