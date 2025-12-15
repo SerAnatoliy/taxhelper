@@ -1,0 +1,14 @@
+:root {
+  --MainColor1: #679FD6;
+  --MainColor2: #FEE688;
+  --textColor: #333333;
+  --backgroundColor: linear-gradient(180deg, var(--MainColor1), var(--MainColor2));
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--backgroundColor);
+  color: var(--textColor) ;
+  scroll-behavior: smooth;
+}
