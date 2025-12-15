@@ -1,6 +1,7 @@
 export const theme = {
   colors: {
     mainColor: '#679FD6',
+    mainColorYellow: '#FEE688',
     logoYellow: '#FCCA3A',
     logoBlue: '#0162BB',  
     logoTeal: '#02B0C2',

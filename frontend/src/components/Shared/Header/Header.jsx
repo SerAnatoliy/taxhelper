@@ -13,16 +13,17 @@ import { ActionButton } from '../../Shared/ActionButton.jsx';
 import TaxHelperLogo from '../../../assets/icons/logoTaxHelper.svg?react';
 import BurgerIcon from '../../../assets/icons/BurgerMenu.svg?react';
 import CloseIcon from '../../../assets/icons/CloseIcon.svg?react';
+import LoginModal from '../LoginModal/LoginModal.jsx';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
 
 const scrollToSection = (sectionId, e) => {
-    e.preventDefault();  // Prevent Router jump
-    console.log(`Scrolling to ${sectionId}`);  // Debug log
+    e.preventDefault();  
     const element = document.getElementById(sectionId);
     if (element) {
-      const offset = 80;  // Header height
+      const offset = 80;  
       const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = elementPosition - offset;
 
@@ -31,7 +32,7 @@ const scrollToSection = (sectionId, e) => {
         behavior: 'smooth'
       });
     }
-    setIsOpen(false);  // Close mobile menu
+    setIsOpen(false);
   };
   return (
     <HeaderContainer>
@@ -44,7 +45,7 @@ const scrollToSection = (sectionId, e) => {
       </Nav>
 
       <LoginHeaderButton>
-        <ActionButton to="/login">
+        <ActionButton onClick={() => setShowLogin(true)}>
           Login
         </ActionButton>
       </LoginHeaderButton>
@@ -67,7 +68,11 @@ const scrollToSection = (sectionId, e) => {
         <MobileNavLink to="/login" onClick={() => setIsOpen(false)}>
           Login
         </MobileNavLink>
+        <ActionButton onClick={() => { setShowLogin(true); setIsOpen(false); }}>
+          Login
+        </ActionButton>
       </MobileMenu>
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} /> 
     </HeaderContainer>
   );
 };

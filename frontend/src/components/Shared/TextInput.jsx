@@ -3,7 +3,7 @@ import { theme } from "../../theme";
 
 const InputWrapper = styled.div`
   position: relative;
-  width: ${({ width }) => width || '100%'};
+  display: flex;
 `;
 
 const StyledInput = styled.input`
