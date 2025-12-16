@@ -17,7 +17,7 @@ import LoginModal from '../LoginModal/LoginModal.jsx';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showLogin, setShowLogin] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
 
 const scrollToSection = (sectionId, e) => {
     e.preventDefault();  

@@ -4,7 +4,7 @@ import { login } from '../../../services/api';
 import { AnyIcon } from '../AnyIcon';
 import CloseIcon from '../../../assets/icons/CloseIcon.svg?react';
 import { TextInput } from '../../Shared/TextInput.jsx';
-import { ActionButton } from '../ActionButton';
+import { SubmitButton } from '../../Shared/ActionButton.jsx';
 
 const LoginModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
@@ -52,9 +52,9 @@ const LoginModal = ({ isOpen, onClose }) => {
             required
           />
           {error && <ErrorText>{error}</ErrorText>}
-          <ActionButton type="submit" disabled={loading} size="160px">
+          <SubmitButton type="submit" disabled={loading} >
             {loading ? 'Loading...' : 'Login'}
-          </ActionButton>
+          </SubmitButton>
         </FieldsForm>
         <RegisterLinkText>
           Don't have an account? <RegisterLink href="/register">Register</RegisterLink>
