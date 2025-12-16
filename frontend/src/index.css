@@ -6,9 +6,9 @@
 }
 
 body {
-  margin: 0;
   font-family: 'Inter', sans-serif;
   background: var(--backgroundColor);
   color: var(--textColor) ;
   scroll-behavior: smooth;
+  margin: 32px;
 }

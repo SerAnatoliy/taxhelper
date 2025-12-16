@@ -16,7 +16,7 @@ const StyledInput = styled.input`
   color: ${theme.colors.textWhite};
 
   background: ${theme.colors.inputBg};
-  border: 1px solid transparent;
+  border: 1px solid ;
   border-radius: 8px;
 
   transition: border 0.2s ease;
