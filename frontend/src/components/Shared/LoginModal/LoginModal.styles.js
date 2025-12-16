@@ -83,23 +83,3 @@ export const RegisterLink =styled.a`
   margin-top: 1rem;
   color:${theme.colors.logoBlue};
 `;
-
-
-export const SubmitButton = styled.button`
-  width: 100%;
-  padding: 0.75rem;
-  background: ${theme.colors.primaryBlue};
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  &:hover {
-    background: #1d4ed8;
-  }
-  &:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-  }
-`;
