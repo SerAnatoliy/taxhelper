@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
 import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
 import { GradientPageContainer } from '../Shared/FormComponents/FormComponents.styles';
@@ -13,12 +12,12 @@ import StepThree from './StepThree/StepThree';
 
 import {
   OnboardingHeader,
-  HeaderLeft,
-  LogoText,
+  LogoutButton,
+  ProgressSection,
   StepIndicator,
   StepText,
   StepCount,
-  SkipButton,
+  SkipAllButton,
   MainContent,
 } from './Onboarding.styles';
 
@@ -73,7 +72,6 @@ const Onboarding = () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      
       navigate('/dashboard');
     }
   };
@@ -94,6 +92,11 @@ const Onboarding = () => {
 
   const handleSkipAll = () => {
     navigate('/dashboard');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/');
   };
 
   const updateUserData = (data) => {
@@ -147,18 +150,19 @@ const Onboarding = () => {
   return (
     <GradientPageContainer>
       <OnboardingHeader>
-        <HeaderLeft>
-          <AnyIcon icon={TaxHelperLogo} size="48px" />
-          <LogoText>TaxHelper</LogoText>
-        </HeaderLeft>
+        <div style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+          <AnyIcon icon={TaxHelperLogo} size="64px" />
+        </div>
+        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+      </OnboardingHeader>
 
+      <ProgressSection>
         <StepIndicator>
           <StepText>Step</StepText>
           <StepCount>{currentStep} out of {TOTAL_STEPS}</StepCount>
         </StepIndicator>
-
-        <SkipButton onClick={handleSkipAll}>Skip</SkipButton>
-      </OnboardingHeader>
+        <SkipAllButton onClick={handleSkipAll}>Skip all</SkipAllButton>
+      </ProgressSection>
 
       <MainContent>{renderStep()}</MainContent>
 

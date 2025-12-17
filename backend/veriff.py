@@ -60,7 +60,7 @@ async def create_verification_session(
     
     payload = {
         "verification": {
-            "callback": f"{FRONTEND_URL}/onboarding?step=2&veriff=callback",
+            "callback": f"{FRONTEND_URL}/onboarding?step=2&veriff=callback" if FRONTEND_URL.startswith("https") else "https://example.com/callback",
             "person": {
                 "firstName": first_name,
                 "lastName": last_name,
