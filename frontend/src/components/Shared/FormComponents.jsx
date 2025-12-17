@@ -1,9 +1,11 @@
-// frontend/src/components/Shared/FormComponents.jsx
+import { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { theme } from '../../theme';
+import { AnyIcon } from './AnyIcon';
+import ShowPasswordIcon from '../../assets/icons/ShowPassword.svg?react';
+import HidePasswordIcon from '../../assets/icons/HidePassword.svg?react';
 
-// ============ PAGE TITLE ============
 export const PageTitle = styled.h1`
   font-size: ${({ $size }) => $size || '32px'};
   font-weight: 700;
@@ -16,7 +18,6 @@ export const PageTitle = styled.h1`
   }
 `;
 
-// ============ PAGE SUBTITLE ============
 export const PageSubtitle = styled.p`
   font-size: ${({ $size }) => $size || '16px'};
   color: ${theme.colors.mainFont};
@@ -30,15 +31,16 @@ export const PageSubtitle = styled.p`
   }
 `;
 
-// ============ FORM INPUT ============
 const InputWrapper = styled.div`
   width: 100%;
+  position: relative;
+  box-sizing: border-box;
 `;
 
 const StyledFormInput = styled.input`
   width: 100%;
   height: ${({ $height }) => $height || '52px'};
-  padding: 0 1rem;
+  padding: ${({ $hasIcon }) => ($hasIcon ? '0 3rem 0 1rem' : '0 1rem')};
   font-size: ${({ $fontSize }) => $fontSize || '16px'};
   color: ${theme.colors.mainFont};
   background: ${({ $bg }) => $bg || theme.colors.white};
@@ -66,6 +68,26 @@ const StyledFormInput = styled.input`
   }
 `;
 
+const PasswordToggle = styled.button`
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${theme.colors.mainFont};
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+  }
+`;
+
 const ErrorText = styled.span`
   font-size: 12px;
   color: ${theme.colors.error};
@@ -83,26 +105,45 @@ export const FormInput = ({
   fontSize,
   borderRadius,
   bg,
+  showPasswordToggle = false,
   ...props
-}) => (
-  <InputWrapper>
-    <StyledFormInput
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      $hasError={!!error}
-      $height={height}
-      $fontSize={fontSize}
-      $borderRadius={borderRadius}
-      $bg={bg}
-      {...props}
-    />
-    {error && <ErrorText>{error}</ErrorText>}
-  </InputWrapper>
-);
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPasswordType = type === 'password';
+  const inputType = isPasswordType && showPassword ? 'text' : type;
 
-// ============ FORM CHECKBOX ============
+  return (
+    <InputWrapper>
+      <StyledFormInput
+        type={inputType}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        $hasError={!!error}
+        $height={height}
+        $fontSize={fontSize}
+        $borderRadius={borderRadius}
+        $bg={bg}
+        $hasIcon={isPasswordType && showPasswordToggle}
+        {...props}
+      />
+      {isPasswordType && showPasswordToggle && (
+        <PasswordToggle
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
+        >
+          <AnyIcon 
+            icon={showPassword ? HidePasswordIcon : ShowPasswordIcon} 
+            size="24px" 
+          />
+        </PasswordToggle>
+      )}
+      {error && <ErrorText>{error}</ErrorText>}
+    </InputWrapper>
+  );
+};
+
 const CheckboxWrapper = styled.div`
   display: flex;
   align-items: flex-start;
@@ -155,7 +196,6 @@ export const FormCheckbox = ({
   </div>
 );
 
-// ============ FORM LINK ============
 export const FormLink = styled(Link)`
   color: ${theme.colors.logoBlue};
   text-decoration: underline;
@@ -170,7 +210,6 @@ export const FormLink = styled(Link)`
   }
 `;
 
-// ============ GRADIENT PAGE CONTAINER ============
 export const GradientPageContainer = styled.div`
   min-height: 100vh;
   display: flex;
@@ -180,13 +219,16 @@ export const GradientPageContainer = styled.div`
     ${theme.colors.mainColor} 0%,
     ${theme.colors.mainColorYellow} 100%
   );
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
-// ============ FORM CONTAINER ============
 export const FormContainer = styled.div`
   width: 100%;
   max-width: ${({ $maxWidth }) => $maxWidth || '600px'};
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 `;

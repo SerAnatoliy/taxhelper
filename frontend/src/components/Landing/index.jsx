@@ -1,8 +1,8 @@
 // frontend/src/components/Landing/index.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../Shared/Header/Header';
-import Footer from '../Shared/Footer/Footer';
+import Header from '../Header/Header';
+import Footer from '../Footer/Footer';
 import { SubmitButton, ActionButton } from '../Shared/ActionButton';
 import { AnyIcon } from '../Shared/AnyIcon';
 import {
@@ -30,12 +30,10 @@ import {
   PricingButtonContainer,
 } from './Landing.styles';
 
-// Icons
 import AIIcon from '../../assets/icons/AI.svg?react';
 import KYCIcon from '../../assets/icons/KYC.svg?react';
 import DocParseIcon from '../../assets/icons/docparse.svg?react';
 
-// ============ DATA ============
 const FEATURES = [
   { id: 'ai', icon: AIIcon, title: 'AI Tax Advisor' },
   { id: 'kyc', icon: KYCIcon, title: 'Easy KYC' },
@@ -64,7 +62,6 @@ const PRICING_PLANS = [
   },
 ];
 
-// ============ COMPONENT ============
 const Landing = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -95,7 +92,6 @@ const Landing = () => {
     <GradientPageContainer>
       <Header />
       <MainContent>
-        {/* Hero Section */}
         <HeroSection>
           <PageTitle $size="48px">Save 20+ Hours on Taxes with AI</PageTitle>
           <PageSubtitle $size="20px" $maxWidth="600px">
@@ -126,7 +122,6 @@ const Landing = () => {
           </EmailFormContainer>
         </HeroSection>
 
-        {/* Features Section */}
         <FeaturesSection id="features">
           {FEATURES.map((feature) => (
             <FeatureItem key={feature.id}>
@@ -136,7 +131,6 @@ const Landing = () => {
           ))}
         </FeaturesSection>
 
-        {/* Pricing Section */}
         <PricingSection id="pricing">
           <PageTitle $size="40px">Prices</PageTitle>
           <PricingGrid>

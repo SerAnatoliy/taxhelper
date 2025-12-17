@@ -5,7 +5,8 @@ from expenses import router as expenses_router
 import stripe
 import os
 from dotenv import load_dotenv
-
+from bank import router as bank_router
+from veriff import router as veriff_router
 
 app = FastAPI(title="TaxHelper API", version="0.1.0")
 load_dotenv()
@@ -20,10 +21,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include auth router
 from auth import router as auth_router
 app.include_router(auth_router)
 app.include_router(expenses_router)
+app.include_router(bank_router)
+app.include_router(veriff_router)
 
 @app.get("/")
 async def root():

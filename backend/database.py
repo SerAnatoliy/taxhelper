@@ -23,6 +23,10 @@ class User(Base):
     region = Column(String(50), index=True)
     nie_dni = Column(String(20), nullable=True)  
     verified_kyc = Column(Boolean, default=False)  
+    veriff_session_id = Column(String(100), nullable=True)  
+    veriff_status = Column(String(50), nullable=True)       
+    kyc_verified_at = Column(DateTime, nullable=True)       
+    kyc_skipped = Column(Boolean, default=False)           
     stripe_customer_id = Column(String(255), nullable=True)
     stripe_subscription_id = Column(String(255), nullable=True)
     subscription_status = Column(String(50), nullable=True)
@@ -39,13 +43,19 @@ class BankAccount(Base):
     __tablename__ = "bank_accounts"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    bank_name = Column(String(50))
-    account_number = Column(BYTEA)
-    access_token = Column(String(500))
-    last_sync = Column(DateTime)
+    bank_name = Column(String(100))
+    account_name = Column(String(100), nullable=True)  
+    account_mask = Column(String(10), nullable=True)   
+    account_type = Column(String(50), nullable=True)   
+    account_number = Column(BYTEA, nullable=True)      
+    access_token = Column(String(500), nullable=True)  
+    plaid_account_id = Column(String(100), nullable=True, index=True)   
+    plaid_item_id = Column(String(100), nullable=True) 
+    last_sync = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)  
     
     user = relationship("User", back_populates="bank_account")
-
+    
 class Transaction(Base):
     __tablename__ = "transactions"
     id = Column(Integer, primary_key=True, index=True)
@@ -58,6 +68,7 @@ class Transaction(Base):
     description = Column(Text)
     invoice_id = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    plaid_transaction_id = Column(String(100), nullable=True, unique=True, index=True) 
     
     user = relationship("User", back_populates="transactions")
 
@@ -84,5 +95,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-        

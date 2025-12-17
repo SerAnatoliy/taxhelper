@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { ModalOverlay, ModalContent, CloseButton, FormTitle, ErrorText, RegisterLink, RegisterLinkText, FieldsForm } from './LoginModal.styles';
-import { login } from '../../../services/api';  
-import { AnyIcon } from '../AnyIcon';
-import CloseIcon from '../../../assets/icons/CloseIcon.svg?react';
-import { TextInput } from '../../Shared/TextInput.jsx';
-import { SubmitButton } from '../../Shared/ActionButton.jsx';
+import { login } from '../../services/api.js';  
+import { AnyIcon } from '../Shared/AnyIcon.jsx';
+import CloseIcon from '../../assets/icons/CloseIcon.svg?react';
+import { TextInput } from '../Shared/TextInput.jsx';
+import { SubmitButton } from '../Shared/ActionButton.jsx';
 
 const LoginModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');

@@ -1,4 +1,3 @@
-// frontend/src/components/Landing/Landing.styles.js
 import styled from 'styled-components';
 import { theme } from '../../theme';
 
@@ -49,7 +48,6 @@ export const ButtonContainer = styled.div`
   margin-top: 1.5rem;
 `;
 
-// ============ FEATURES ============
 export const FeaturesSection = styled.section`
   width: 100%;
   max-width: 900px;
@@ -82,7 +80,6 @@ export const FeatureTitle = styled.h3`
   }
 `;
 
-// ============ PRICING ============
 export const PricingSection = styled.section`
   width: 100%;
   max-width: 1200px;

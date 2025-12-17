@@ -1,13 +1,12 @@
-// frontend/src/components/Registration/Registration.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import Header from '../Shared/Header/Header';
-import Footer from '../Shared/Footer/Footer';
+import Header from '../Header/Header';
+import Footer from '../Footer/Footer';
 import { SubmitButton } from '../Shared/ActionButton';
 import { register } from '../../services/api';
 import { theme } from '../../theme';
-import LoginModal from '../Shared/LoginModal/LoginModal';
+import LoginModal from '../LoginModal/LoginModal';
 import {
   PageTitle,
   PageSubtitle,
@@ -18,7 +17,6 @@ import {
   FormContainer,
 } from '../Shared/FormComponents';
 
-// ============ LOCAL STYLES ============
 const MainContent = styled.main`
   flex: 1;
   display: flex;
@@ -57,10 +55,6 @@ const PasswordFieldsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-
-  @media (min-width: 768px) {
-    max-width: 320px;
-  }
 `;
 
 const PasswordRequirements = styled.ul`
@@ -102,7 +96,6 @@ const ErrorMessage = styled.p`
   margin: 0;
 `;
 
-// ============ PASSWORD VALIDATION RULES ============
 const PASSWORD_RULES = [
   { id: 'length', label: 'At least 8 characters', test: (pwd) => pwd.length >= 8 },
   { id: 'uppercase', label: 'One uppercase letter (A-Z)', test: (pwd) => /[A-Z]/.test(pwd) },
@@ -111,12 +104,10 @@ const PASSWORD_RULES = [
   { id: 'special', label: 'One special character (!@#$%...)', test: (pwd) => /[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]/.test(pwd) },
 ];
 
-// ============ COMPONENT ============
 const Registration = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get pre-filled email from Landing page (if any)
   const prefilledEmail = location.state?.email || '';
 
   const [formData, setFormData] = useState({
@@ -133,13 +124,11 @@ const Registration = () => {
   const [showPasswordRules, setShowPasswordRules] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Validate password against all rules
   const validatePassword = (password) => {
     const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(password));
     return failedRules.length === 0 ? null : 'Password does not meet all requirements';
   };
 
-  // Validate entire form
   const validateForm = () => {
     const newErrors = {};
 
@@ -180,20 +169,17 @@ const Registration = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -206,15 +192,12 @@ const Registration = () => {
       const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
       const response = await register(fullName, formData.email, formData.password);
 
-      // Store the token
       localStorage.setItem('token', response.access_token);
 
-      // Redirect to dashboard
-      navigate('/dashboard');
+      navigate('/onboarding');
     } catch (error) {
       console.error('Registration error:', error);
 
-      // Handle specific API errors
       if (error.response?.status === 400) {
         const detail = error.response.data?.detail;
         if (detail?.includes('Email already registered')) {
@@ -232,7 +215,6 @@ const Registration = () => {
     }
   };
 
-  // Checkbox label with link
   const checkboxLabel = (
     <>
       I agree to Terms & Conditions and{' '}
@@ -252,7 +234,6 @@ const Registration = () => {
           </PageSubtitle>
 
           <FormFieldsContainer>
-            {/* Name Fields */}
             <NameFieldsRow>
               <FormInput
                 type="text"
@@ -272,7 +253,6 @@ const Registration = () => {
               />
             </NameFieldsRow>
 
-            {/* Email Field */}
             <FormInput
               type="email"
               name="email"
@@ -282,7 +262,6 @@ const Registration = () => {
               error={errors.email}
             />
 
-            {/* Password Fields */}
             <PasswordFieldsContainer>
               <FormInput
                 type="password"
@@ -293,9 +272,9 @@ const Registration = () => {
                 onFocus={() => setShowPasswordRules(true)}
                 onBlur={() => setShowPasswordRules(false)}
                 error={errors.password}
+                showPasswordToggle
               />
 
-              {/* Password Requirements Checklist */}
               {(showPasswordRules || formData.password) && (
                 <PasswordRequirements>
                   {PASSWORD_RULES.map((rule) => (
@@ -316,10 +295,10 @@ const Registration = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 error={errors.confirmPassword}
+                showPasswordToggle
               />
             </PasswordFieldsContainer>
 
-            {/* Terms Checkbox */}
             <FormCheckbox
               id="agreeToTerms"
               name="agreeToTerms"
@@ -329,10 +308,8 @@ const Registration = () => {
               error={errors.agreeToTerms}
             />
 
-            {/* General Error Message */}
             {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
 
-            {/* Submit Button */}
             <ButtonContainer>
               <SubmitButton
                 type="submit"
@@ -344,7 +321,6 @@ const Registration = () => {
               </SubmitButton>
             </ButtonContainer>
 
-            {/* Login Link */}
             <LoginText>
               Already registered?{' '}
               <FormLink as="button" type="button" onClick={() => setShowLoginModal(true)}>
@@ -356,7 +332,6 @@ const Registration = () => {
       </MainContent>
       <Footer />
       
-      {/* Login Modal */}
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </GradientPageContainer>
   );

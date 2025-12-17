@@ -1,4 +1,3 @@
-// frontend/src/components/Registration/Registration.styles.js
 import styled from 'styled-components';
 import { theme } from '../../theme';
 

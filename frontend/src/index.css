@@ -10,5 +10,5 @@ body {
   background: var(--backgroundColor);
   color: var(--textColor) ;
   scroll-behavior: smooth;
-  margin: 32px;
+  margin: 16px;
 }

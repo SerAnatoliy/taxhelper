@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../../theme';  // Припускаю theme в src/theme.js
+import { theme } from '../../theme';
 
 export const ModalOverlay = styled.div`
   position: fixed;
