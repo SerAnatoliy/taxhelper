@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { updateProfile } from '../../services/api';
+import { updateProfile } from '../../../services/api';
 import {
   PageTitle,
   PageSubtitle,
-  FormInput,
-  FormCheckbox,
-} from '../Shared/FormComponents';
+} from '../../Shared/FormComponents/FormComponents.styles';
 import {
   FormSection,
   FieldLabel,
@@ -16,7 +14,9 @@ import {
   PrimaryButton,
   SkipButton,
   ErrorText,
-} from './Onboarding.styles';
+} from '../Onboarding.styles';
+import { FormCheckbox, FormInput } from '../../Shared/FormComponents/FormComponents.jsx';
+
 
 const FAMILY_STATUS_OPTIONS = [
   { value: '', label: 'Select your status' },

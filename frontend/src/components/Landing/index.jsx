@@ -3,14 +3,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
-import { SubmitButton, ActionButton } from '../Shared/ActionButton';
-import { AnyIcon } from '../Shared/AnyIcon';
+import { SubmitButton, ActionButton } from '../Shared/ActionButton/ActionButton';
+import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
 import {
   PageTitle,
   PageSubtitle,
-  FormInput,
   GradientPageContainer,
-} from '../Shared/FormComponents';
+} from '../Shared/FormComponents/FormComponents.styles';
 import {
   MainContent,
   HeroSection,
@@ -29,6 +28,7 @@ import {
   PricingListItem,
   PricingButtonContainer,
 } from './Landing.styles';
+import{FormInput} from '../Shared/FormComponents/FormComponents.jsx';
 
 import AIIcon from '../../assets/icons/AI.svg?react';
 import KYCIcon from '../../assets/icons/KYC.svg?react';

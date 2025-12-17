@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AnyIcon } from '../Shared/AnyIcon.jsx';
+import { AnyIcon } from '../Shared/AnyIcon/AnyIcon.jsx';
 import {
   HeaderContainer,
   Nav,
@@ -12,7 +12,7 @@ import {
   MobileNavLink,
   LoginHeaderButton,
 } from './Header.styles.js';
-import { ActionButton } from '../Shared/ActionButton.jsx';
+import { ActionButton } from '../Shared/ActionButton/ActionButton.jsx';
 import TaxHelperLogo from '../../assets/icons/logoTaxHelper.svg?react';
 import BurgerIcon from '../../assets/icons/BurgerMenu.svg?react';
 import LoginModal from '../LoginModal/LoginModal.jsx';

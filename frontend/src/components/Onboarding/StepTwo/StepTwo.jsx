@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme } from '../../../theme';
 import {
   PageTitle,
   PageSubtitle,
-  FormCheckbox,
-} from '../Shared/FormComponents';
+} from '../../Shared/FormComponents/FormComponents.styles';
+import { FormCheckbox } from '../../Shared/FormComponents/FormComponents.jsx';
+
 import {
   FormSection,
   FieldGroup,
@@ -15,8 +16,8 @@ import {
   SecondaryButton,
   SkipLink,
   ErrorText,
-} from './Onboarding.styles';
-import { createVeriffSession, getVeriffStatus } from '../../services/api';
+} from '../Onboarding.styles';
+import { createVeriffSession, getVeriffStatus } from '../../../services/api';
 
 const VerificationCard = styled.div`
   width: 100%;

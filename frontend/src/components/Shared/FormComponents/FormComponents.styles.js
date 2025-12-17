@@ -1,10 +1,6 @@
-import { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { theme } from '../../theme';
-import { AnyIcon } from './AnyIcon';
-import ShowPasswordIcon from '../../assets/icons/ShowPassword.svg?react';
-import HidePasswordIcon from '../../assets/icons/HidePassword.svg?react';
+import { theme } from '../../../theme';
 
 export const PageTitle = styled.h1`
   font-size: ${({ $size }) => $size || '32px'};
@@ -31,13 +27,13 @@ export const PageSubtitle = styled.p`
   }
 `;
 
-const InputWrapper = styled.div`
+export const InputWrapper = styled.div`
   width: 100%;
   position: relative;
   box-sizing: border-box;
 `;
 
-const StyledFormInput = styled.input`
+export const StyledFormInput = styled.input`
   width: 100%;
   height: ${({ $height }) => $height || '52px'};
   padding: ${({ $hasIcon }) => ($hasIcon ? '0 3rem 0 1rem' : '0 1rem')};
@@ -68,7 +64,7 @@ const StyledFormInput = styled.input`
   }
 `;
 
-const PasswordToggle = styled.button`
+export const PasswordToggle = styled.button`
   position: absolute;
   right: 0.75rem;
   top: 50%;
@@ -88,69 +84,20 @@ const PasswordToggle = styled.button`
   }
 `;
 
-const ErrorText = styled.span`
+export const ErrorText = styled.span`
   font-size: 12px;
   color: ${theme.colors.error};
   margin-top: 4px;
   display: block;
 `;
 
-export const FormInput = ({
-  value,
-  onChange,
-  placeholder,
-  type = 'text',
-  error,
-  height,
-  fontSize,
-  borderRadius,
-  bg,
-  showPasswordToggle = false,
-  ...props
-}) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const isPasswordType = type === 'password';
-  const inputType = isPasswordType && showPassword ? 'text' : type;
-
-  return (
-    <InputWrapper>
-      <StyledFormInput
-        type={inputType}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        $hasError={!!error}
-        $height={height}
-        $fontSize={fontSize}
-        $borderRadius={borderRadius}
-        $bg={bg}
-        $hasIcon={isPasswordType && showPasswordToggle}
-        {...props}
-      />
-      {isPasswordType && showPasswordToggle && (
-        <PasswordToggle
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          aria-label={showPassword ? 'Hide password' : 'Show password'}
-        >
-          <AnyIcon 
-            icon={showPassword ? HidePasswordIcon : ShowPasswordIcon} 
-            size="24px" 
-          />
-        </PasswordToggle>
-      )}
-      {error && <ErrorText>{error}</ErrorText>}
-    </InputWrapper>
-  );
-};
-
-const CheckboxWrapper = styled.div`
+export const CheckboxWrapper = styled.div`
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
 `;
 
-const StyledCheckbox = styled.input`
+export const StyledCheckbox = styled.input`
   width: 20px;
   height: 20px;
   margin: 0;
@@ -159,7 +106,7 @@ const StyledCheckbox = styled.input`
   flex-shrink: 0;
 `;
 
-const CheckboxLabelStyled = styled.label`
+export const CheckboxLabelStyled = styled.label`
   font-size: ${({ $fontSize }) => $fontSize || '14px'};
   color: ${theme.colors.mainFont};
   cursor: pointer;
@@ -170,31 +117,6 @@ const CheckboxLabelStyled = styled.label`
   }
 `;
 
-export const FormCheckbox = ({
-  checked,
-  onChange,
-  id,
-  label,
-  fontSize,
-  error,
-  ...props
-}) => (
-  <div>
-    <CheckboxWrapper>
-      <StyledCheckbox
-        type="checkbox"
-        id={id}
-        checked={checked}
-        onChange={onChange}
-        {...props}
-      />
-      <CheckboxLabelStyled htmlFor={id} $fontSize={fontSize}>
-        {label}
-      </CheckboxLabelStyled>
-    </CheckboxWrapper>
-    {error && <ErrorText>{error}</ErrorText>}
-  </div>
-);
 
 export const FormLink = styled(Link)`
   color: ${theme.colors.logoBlue};

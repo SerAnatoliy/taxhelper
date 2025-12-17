@@ -1,8 +1,8 @@
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { theme } from '../../theme';
+import { theme } from '../../../theme';
 
-const BaseButtonLink = styled(Link)`
+export const BaseButtonLink = styled(Link)`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -29,7 +29,7 @@ const BaseButtonLink = styled(Link)`
   }
 `;
 
-const BaseButton = styled.button`
+export const BaseButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -55,45 +55,3 @@ const BaseButton = styled.button`
     border: 3px solid ${theme.colors.logoBlue};
   }
 `;
-
-export const SubmitButton = ({
-  to,
-  children,
-  width,
-  height,
-  padding,
-  fontSize,
-  ...props
-}) => (
-  <BaseButton
-    to={to}
-    width={width}
-    height={height}
-    padding={padding}
-    fontSize={fontSize}
-    {...props}
-  >
-    {children}
-  </BaseButton>
-);
-
-export const ActionButton = ({
-  to,
-  children,
-  width,
-  height,
-  padding,
-  fontSize,
-  ...props
-}) => (
-  <BaseButtonLink
-    to={to}
-    width={width}
-    height={height}
-    padding={padding}
-    fontSize={fontSize}
-    {...props}
-  >
-    {children}
-  </BaseButtonLink>
-);

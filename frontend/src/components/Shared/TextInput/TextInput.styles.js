@@ -1,12 +1,12 @@
 import styled from "styled-components";
-import { theme } from "../../theme";
+import { theme } from "../../../theme";
 
-const InputWrapper = styled.div`
+export const InputWrapper = styled.div`
   position: relative;
   display: flex;
 `;
 
-const StyledInput = styled.input`
+export const StyledInput = styled.input`
   width: 100%;
   height: ${({ height }) => height || '44px'};
   padding: ${({ hasIcon }) =>
@@ -31,7 +31,7 @@ const StyledInput = styled.input`
   }
 `;
 
-const IconWrapper = styled.div`
+export const IconWrapper = styled.div`
   position: absolute;
   top: 50%;
   right: 12px;
@@ -40,33 +40,3 @@ const IconWrapper = styled.div`
   align-items: center;
   pointer-events: none;
 `;
-
-export const TextInput = ({
-  value,
-  onChange,
-  placeholder,
-  icon: Icon,
-  width,
-  height,
-  fontSize,
-  ...props
-}) => (
-  <InputWrapper width={width}>
-    <StyledInput
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      hasIcon={!!Icon}
-      height={height}
-      fontSize={fontSize}
-      {...props}
-    />
-    {Icon && (
-      <IconWrapper>
-        <Icon width={20} height={20} />
-      </IconWrapper>
-    )}
-  </InputWrapper>
-);
-
-

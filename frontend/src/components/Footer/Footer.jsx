@@ -1,4 +1,4 @@
-import { AnyIcon } from '../Shared/AnyIcon';
+import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
 import {
   FooterSection,
   FooterDiv,

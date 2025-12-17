@@ -3,19 +3,18 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
-import { SubmitButton } from '../Shared/ActionButton';
+import { SubmitButton } from '../Shared/ActionButton/ActionButton';
 import { register } from '../../services/api';
 import { theme } from '../../theme';
 import LoginModal from '../LoginModal/LoginModal';
 import {
   PageTitle,
   PageSubtitle,
-  FormInput,
-  FormCheckbox,
   FormLink,
   GradientPageContainer,
   FormContainer,
-} from '../Shared/FormComponents';
+} from '../Shared/FormComponents/FormComponents.styles.js';
+import { FormCheckbox, FormInput } from '../Shared/FormComponents/FormComponents.jsx';
 
 const MainContent = styled.main`
   flex: 1;

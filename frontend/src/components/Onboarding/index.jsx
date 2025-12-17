@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
-import { AnyIcon } from '../Shared/AnyIcon';
-import { GradientPageContainer } from '../Shared/FormComponents';
+import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
+import { GradientPageContainer } from '../Shared/FormComponents/FormComponents.styles';
 import { getProfile } from '../../services/api';
 import TaxHelperLogo from '../../assets/icons/logoTaxHelper.svg?react';
 
-import StepOne from './StepOne';
-import StepTwo from './StepTwo';
-import StepThree from './StepThree';
+import StepOne from './StepOne/StepOne';
+import StepTwo from './StepTwo/StepTwo';
+import StepThree from './StepThree/StepThree';
 
 import {
   OnboardingHeader,
