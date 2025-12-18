@@ -39,6 +39,8 @@ class User(Base):
     transactions = relationship("Transaction", back_populates="user")
     reports = relationship("Report", back_populates="user")
     reminders = relationship("Reminder", back_populates="user")
+    chat_messages = relationship("ChatMessage", back_populates="user")
+
 
 class BankAccount(Base):
     __tablename__ = "bank_accounts"
@@ -95,14 +97,31 @@ class Reminder(Base):
     title = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     due_date = Column(DateTime, nullable=False, index=True)
-    reminder_type = Column(String(50), default="custom")  # "tax_deadline" or "custom"
-    modelo = Column(String(20), nullable=True)  # "303", "130", "100", "390", etc.
+    reminder_type = Column(String(50), default="custom")  
+    modelo = Column(String(20), nullable=True)  
     is_completed = Column(Boolean, default=False)
-    notify_days_before = Column(Integer, default=7)  # Days before to send notification
+    notify_days_before = Column(Integer, default=7)  
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     user = relationship("User", back_populates="reminders")
+    
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    conversation_id = Column(String(50), index=True)  
+    role = Column(String(20))  
+    content = Column(Text)  
+
+    response_data = Column(JSON, nullable=True)
+
+    is_off_topic = Column(Boolean, default=False)
+    tokens_used = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="chat_messages")
 
 Base.metadata.create_all(bind=engine)
 

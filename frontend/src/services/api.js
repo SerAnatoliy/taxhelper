@@ -149,4 +149,33 @@ export const completeReminder = async (reminderId) => {
   return response.data;
 };
 
+
+export const sendChatMessage = async (message, conversationId = null) => {
+  const response = await api.post('/chat/message', {
+    message,
+    conversation_id: conversationId
+  });
+  return response.data;
+};
+
+export const getConversation = async (conversationId) => {
+  const response = await api.get(`/chat/conversation/${conversationId}`);
+  return response.data;
+};
+
+export const getConversations = async (limit = 20) => {
+  const response = await api.get(`/chat/conversations?limit=${limit}`);
+  return response.data;
+};
+
+export const deleteConversation = async (conversationId) => {
+  const response = await api.delete(`/chat/conversation/${conversationId}`);
+  return response.data;
+};
+
+export const startNewConversation = async () => {
+  const response = await api.post('/chat/new');
+  return response.data;
+};
+
 export default api;

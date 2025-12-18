@@ -14,6 +14,7 @@ import NotificationInactive from '../../assets/icons/NotificationInactive.svg?re
 import UserIconSvg from '../../assets/icons/UserIcon.svg?react';
 import SendMessage from '../../assets/icons/SendMessage.svg?react';
 import ChartGrafic from '../../assets/icons/ChartGrafic.svg?react';
+import AIChat from '../AIChat/AIChat';
 
 import {
   DashboardContainer,
@@ -247,26 +248,10 @@ const Dashboard = () => {
             </ExpensesSummaryCard>
           </CardsRow>
 
-          <RightColumn>
-            <AIChatCard>
-              <AIChatTitle>AI Tax Advisor Chat</AIChatTitle>
-              <AIChatMessage>
-                Bot: Hi {firstName}! Ask your question about taxes
-              </AIChatMessage>
-              <AIChatInputContainer>
-                <AIChatInput
-                  type="text"
-                  placeholder="Type your message ..."
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                />
-                <AIChatSendButton>
-                  <AnyIcon icon={SendMessage} size="24px" />
-                </AIChatSendButton>
-              </AIChatInputContainer>
-            </AIChatCard>
-            <GenerateInvoiceButton>Generate invoice</GenerateInvoiceButton>
-          </RightColumn>
+   <RightColumn>
+     <AIChat userName={firstName} />
+     <GenerateInvoiceButton>Generate invoice</GenerateInvoiceButton>
+   </RightColumn>
         </DashboardGrid>
       </MainContent>
 

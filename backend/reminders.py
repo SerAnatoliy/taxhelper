@@ -11,22 +11,18 @@ from auth import get_current_user
 router = APIRouter(prefix="/reminders", tags=["reminders"])
 
 
-# Spanish Tax Deadlines for Autónomos
+
 class SpanishTaxDeadlines:
     
     @staticmethod
     def get_quarterly_deadlines(year: int) -> List[dict]:
         return [
-            # Q4 of previous year - due Jan 30
             {"modelo": "303", "name": "IVA Q4", "due_date": date(year, 1, 30), "quarter": "Q4", "description": "Quarterly VAT declaration"},
             {"modelo": "130", "name": "IRPF Q4", "due_date": date(year, 1, 30), "quarter": "Q4", "description": "Quarterly income tax prepayment"},
-            # Q1 - due Apr 20
             {"modelo": "303", "name": "IVA Q1", "due_date": date(year, 4, 20), "quarter": "Q1", "description": "Quarterly VAT declaration"},
             {"modelo": "130", "name": "IRPF Q1", "due_date": date(year, 4, 20), "quarter": "Q1", "description": "Quarterly income tax prepayment"},
-            # Q2 - due Jul 20
             {"modelo": "303", "name": "IVA Q2", "due_date": date(year, 7, 20), "quarter": "Q2", "description": "Quarterly VAT declaration"},
             {"modelo": "130", "name": "IRPF Q2", "due_date": date(year, 7, 20), "quarter": "Q2", "description": "Quarterly income tax prepayment"},
-            # Q3 - due Oct 20
             {"modelo": "303", "name": "IVA Q3", "due_date": date(year, 10, 20), "quarter": "Q3", "description": "Quarterly VAT declaration"},
             {"modelo": "130", "name": "IRPF Q3", "due_date": date(year, 10, 20), "quarter": "Q3", "description": "Quarterly income tax prepayment"},
         ]

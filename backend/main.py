@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from bank import router as bank_router
 from veriff import router as veriff_router
 from reminders import router as reminders_router
+from chat import router as chat_router
 
 app = FastAPI(title="TaxHelper API", version="0.1.0")
 load_dotenv()
@@ -28,6 +29,7 @@ app.include_router(expenses_router)
 app.include_router(bank_router)
 app.include_router(veriff_router)
 app.include_router(reminders_router)
+app.include_router(chat_router)
 
 @app.get("/")
 async def root():
