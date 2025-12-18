@@ -7,8 +7,9 @@ export const ChatContainer = styled.div`
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 400px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 `;
 
 export const ChatHeader = styled.div`
@@ -48,9 +49,10 @@ export const MessagesContainer = styled.div`
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
   padding-right: 0.5rem;
   margin-bottom: 1rem;
+  min-height: 0;
   
   &::-webkit-scrollbar {
     width: 6px;

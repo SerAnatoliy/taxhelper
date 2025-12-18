@@ -12,9 +12,7 @@ import TaxHelperLogo from '../../assets/icons/logoTaxHelper.svg?react';
 import NotificationActive from '../../assets/icons/NotificationActive.svg?react';
 import NotificationInactive from '../../assets/icons/NotificationInactive.svg?react';
 import UserIconSvg from '../../assets/icons/UserIcon.svg?react';
-import SendMessage from '../../assets/icons/SendMessage.svg?react';
 import ChartGrafic from '../../assets/icons/ChartGrafic.svg?react';
-import AIChat from '../AIChat/AIChat';
 
 import {
   DashboardContainer,
@@ -37,7 +35,8 @@ import {
   QuickStatsContent,
   QuickStatsAmount,
   QuickStatsChart,
-  CardsRow,
+  BottomRow,
+  LeftColumn,
   DeadlinesCard,
   CardTitle,
   DeadlinesList,
@@ -54,17 +53,12 @@ import {
   ExpensesStats,
   ExpensesStat,
   RightColumn,
-  AIChatCard,
-  AIChatTitle,
-  AIChatMessage,
-  AIChatInputContainer,
-  AIChatInput,
-  AIChatSendButton,
   GenerateInvoiceButton,
 } from './Dashboard.styles';
 
 import AddReminderModal from '../AddReminderModal/AddReminderModal';
 import SideMenu from '../SideMenu/SideMenu';
+import AIChat from '../AIChat/AIChat';
 
 const DonutChart = ({ expenses = 0, income = 0 }) => {
   const total = expenses + income || 1;
@@ -91,7 +85,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [hasNotifications, setHasNotifications] = useState(true);
-  const [chatMessage, setChatMessage] = useState('');
   const [allDeadlines, setAllDeadlines] = useState([]);
   const [showAddReminder, setShowAddReminder] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -196,62 +189,64 @@ const Dashboard = () => {
             </QuickStatsContent>
           </QuickStatsCard>
 
-          <CardsRow>
-            <DeadlinesCard>
-              <CardTitle>Upcoming Deadlines</CardTitle>
-              <DeadlinesList>
-                {allDeadlines.length > 0 ? (
-                  allDeadlines.map((deadline, index) => (
-                    <DeadlineItem key={index} $isOverdue={deadline.isOverdue}>
-                      <DeadlineName>{deadline.name}</DeadlineName>
-                      <DeadlineDate>{formatDeadlineDate(deadline.date)}</DeadlineDate>
+          <BottomRow>
+            <LeftColumn>
+              <DeadlinesCard>
+                <CardTitle>Upcoming Deadlines</CardTitle>
+                <DeadlinesList>
+                  {allDeadlines.length > 0 ? (
+                    allDeadlines.map((deadline, index) => (
+                      <DeadlineItem key={index} $isOverdue={deadline.isOverdue}>
+                        <DeadlineName>{deadline.name}</DeadlineName>
+                        <DeadlineDate>{formatDeadlineDate(deadline.date)}</DeadlineDate>
+                      </DeadlineItem>
+                    ))
+                  ) : (
+                    <DeadlineItem>
+                      <DeadlineName>No upcoming deadlines</DeadlineName>
                     </DeadlineItem>
-                  ))
-                ) : (
-                  <DeadlineItem>
-                    <DeadlineName>No upcoming deadlines</DeadlineName>
-                  </DeadlineItem>
-                )}
-              </DeadlinesList>
-              <AddReminderButton onClick={() => setShowAddReminder(true)}>
-                Add reminder
-              </AddReminderButton>
-            </DeadlinesCard>
+                  )}
+                </DeadlinesList>
+                <AddReminderButton onClick={() => setShowAddReminder(true)}>
+                  Add reminder
+                </AddReminderButton>
+              </DeadlinesCard>
 
-            <ExpensesSummaryCard>
-              <CardTitle>Expenses Summary</CardTitle>
-              <ExpensesContent>
-                <DonutChartContainer>
-                  <DonutChart expenses={expenses} income={income} />
-                </DonutChartContainer>
-                <ExpensesLegend>
-                  <LegendItem>
-                    <LegendDot $color="#679FD6" />
-                    <span>{Math.round((expenses / (expenses + income || 1)) * 100)}%</span>
-                  </LegendItem>
-                  <LegendItem>
-                    <LegendDot $color="#FCCA3A" />
-                    <span>{Math.round((income / (expenses + income || 1)) * 100)}%</span>
-                  </LegendItem>
-                </ExpensesLegend>
-              </ExpensesContent>
-              <ExpensesStats>
-                <ExpensesStat>
-                  <span>Total:</span>
-                  <span>€{totalExpenses.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
-                </ExpensesStat>
-                <ExpensesStat>
-                  <span>AVG deduction:</span>
-                  <span>€{avgDeduction.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
-                </ExpensesStat>
-              </ExpensesStats>
-            </ExpensesSummaryCard>
-          </CardsRow>
+              <ExpensesSummaryCard>
+                <CardTitle>Expenses Summary</CardTitle>
+                <ExpensesContent>
+                  <DonutChartContainer>
+                    <DonutChart expenses={expenses} income={income} />
+                  </DonutChartContainer>
+                  <ExpensesLegend>
+                    <LegendItem>
+                      <LegendDot $color="#679FD6" />
+                      <span>Expenses {Math.round((expenses / (expenses + income || 1)) * 100)}%</span>
+                    </LegendItem>
+                    <LegendItem>
+                      <LegendDot $color="#FCCA3A" />
+                      <span>Income {Math.round((income / (expenses + income || 1)) * 100)}%</span>
+                    </LegendItem>
+                  </ExpensesLegend>
+                </ExpensesContent>
+                <ExpensesStats>
+                  <ExpensesStat>
+                    <span>Total Expenses:</span>
+                    <span>€{totalExpenses.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                  </ExpensesStat>
+                  <ExpensesStat>
+                    <span>AVG Deduction:</span>
+                    <span>€{avgDeduction.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                  </ExpensesStat>
+                </ExpensesStats>
+              </ExpensesSummaryCard>
+            </LeftColumn>
 
-   <RightColumn>
-     <AIChat userName={firstName} />
-     <GenerateInvoiceButton>Generate invoice</GenerateInvoiceButton>
-   </RightColumn>
+            <RightColumn>
+              <AIChat userName={firstName} />
+              <GenerateInvoiceButton>Generate invoice</GenerateInvoiceButton>
+            </RightColumn>
+          </BottomRow>
         </DashboardGrid>
       </MainContent>
 

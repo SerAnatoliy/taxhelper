@@ -119,6 +119,8 @@ export const MainContent = styled.main`
   flex: 1;
   padding: 0 1rem 2rem;
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
   box-sizing: border-box;
 
   @media (min-width: 768px) {
@@ -134,8 +136,8 @@ export const DashboardGrid = styled.div`
 
   @media (min-width: 1024px) {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: auto auto auto;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
     gap: 1.5rem;
   }
 `;
@@ -147,7 +149,7 @@ export const WelcomeCard = styled.div`
   text-align: center;
 
   @media (min-width: 1024px) {
-    grid-column: 1;
+    grid-column: 1 / 2;
     grid-row: 1;
     text-align: left;
     padding: 2rem;
@@ -221,17 +223,35 @@ export const QuickStatsChart = styled.div`
   }
 `;
 
-export const CardsRow = styled.div`
+export const BottomRow = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
 
   @media (min-width: 1024px) {
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: 2;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
+  }
+`;
+
+export const LeftColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 `;
 
@@ -345,74 +365,11 @@ export const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-height: 400px;
+  max-height: 500px;
 
   @media (min-width: 1024px) {
-    grid-column: 2;
-    grid-row: 2 / 4;
-  }
-`;
-
-export const AIChatCard = styled.div`
-  background: ${theme.colors.white};
-  border-radius: 16px;
-  padding: 1.5rem;
-  flex: 1;
-`;
-
-export const AIChatTitle = styled.h3`
-  font-size: 20px;
-  font-weight: 700;
-  color: ${theme.colors.mainFont};
-  margin: 0 0 1rem;
-
-  @media (min-width: 768px) {
-    font-size: 24px;
-  }
-`;
-
-export const AIChatMessage = styled.p`
-  font-size: 14px;
-  color: ${theme.colors.mainFont};
-  margin: 0 0 1rem;
-  line-height: 1.5;
-`;
-
-export const AIChatInputContainer = styled.div`
-  display: flex;
-  align-items: center;
-  background: ${theme.colors.white};
-  border: 2px solid ${theme.colors.mainFont};
-  border-radius: 24px;
-  padding: 0.5rem 1rem;
-`;
-
-export const AIChatInput = styled.input`
-  flex: 1;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  color: ${theme.colors.mainFont};
-  background: transparent;
-
-  &::placeholder {
-    color: ${theme.colors.mainFont};
-    opacity: 0.6;
-  }
-`;
-
-export const AIChatSendButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  svg {
-    width: 24px;
-    height: 24px;
-    color: ${theme.colors.mainFont};
+    max-height: 450px;
   }
 `;
 
@@ -427,6 +384,7 @@ export const GenerateInvoiceButton = styled.button`
   color: ${theme.colors.mainFont};
   cursor: pointer;
   transition: background 0.2s ease;
+  flex-shrink: 0;
 
   &:hover {
     background: rgba(231, 248, 255, 1);
