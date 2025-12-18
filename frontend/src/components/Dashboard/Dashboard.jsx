@@ -63,6 +63,7 @@ import {
 } from './Dashboard.styles';
 
 import AddReminderModal from '../AddReminderModal/AddReminderModal';
+import SideMenu from '../SideMenu/SideMenu';
 
 const DonutChart = ({ expenses = 0, income = 0 }) => {
   const total = expenses + income || 1;
@@ -92,6 +93,7 @@ const Dashboard = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [allDeadlines, setAllDeadlines] = useState([]);
   const [showAddReminder, setShowAddReminder] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const [expenses, setExpenses] = useState(0);
   const [income, setIncome] = useState(0);
@@ -164,7 +166,7 @@ const Dashboard = () => {
               <AnyIcon icon={UserIconSvg} size="24px" />
             </UserAvatar>
           </UserInfo>
-          <MenuButton>
+          <MenuButton onClick={() => setIsMenuOpen(true)}>
             <span></span>
             <span></span>
             <span></span>
@@ -274,6 +276,11 @@ const Dashboard = () => {
         isOpen={showAddReminder}
         onClose={() => setShowAddReminder(false)}
         onSubmit={handleAddReminder}
+      />
+
+      <SideMenu 
+        isOpen={isMenuOpen} 
+        onClose={() => setIsMenuOpen(false)} 
       />
     </DashboardContainer>
   );
