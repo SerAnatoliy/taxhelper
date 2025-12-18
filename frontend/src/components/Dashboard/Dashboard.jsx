@@ -61,9 +61,8 @@ import {
   GenerateInvoiceButton,
 } from './Dashboard.styles';
 
-import AddReminderModal from './AddReminderModal';
+import AddReminderModal from '../AddReminderModal/AddReminderModal';
 
-// Donut Chart Component
 const DonutChart = ({ expenses = 0, income = 0 }) => {
   const total = expenses + income || 1;
   const expenseAngle = (expenses / total) * 360;
@@ -85,7 +84,6 @@ const DonutChart = ({ expenses = 0, income = 0 }) => {
   );
 };
 
-// Format date for display
 const formatDeadlineDate = (dateStr) => {
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -133,7 +131,6 @@ const Dashboard = () => {
   const handleAddReminder = async (reminderData) => {
     try {
       await createReminder(reminderData);
-      // Refresh deadlines
       const deadlines = await getAllDeadlines(6, false);
       setDeadlinesData(deadlines);
       setShowAddReminder(false);
@@ -142,7 +139,6 @@ const Dashboard = () => {
     }
   };
 
-  // Calculate expenses summary
   const expenses = transactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
@@ -154,13 +150,10 @@ const Dashboard = () => {
   const totalExpenses = expenses;
   const avgDeduction = expenses * 0.21;
 
-  // Get current quarter
   const currentQuarter = `Q${Math.ceil((new Date().getMonth() + 1) / 3)}`;
 
-  // Get user's first name
   const firstName = profile?.full_name?.split(' ')[0] || 'User';
 
-  // Combine and sort all deadlines (tax + custom), take first 3
   const allDeadlines = [
     ...deadlinesData.tax_deadlines.map(d => ({
       name: d.name,
@@ -180,7 +173,6 @@ const Dashboard = () => {
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 3);
 
-  // Get next IVA deadline for welcome message
   const nextIVADeadline = deadlinesData.tax_deadlines.find(d => 
     d.modelo === '303' && d.days_until_due >= 0
   );
@@ -223,7 +215,6 @@ const Dashboard = () => {
 
       <MainContent>
         <DashboardGrid>
-          {/* Welcome Card */}
           <WelcomeCard>
             <WelcomeTitle>Welcome back, {firstName}!</WelcomeTitle>
             <WelcomeSubtitle>
@@ -235,7 +226,6 @@ const Dashboard = () => {
             </WelcomeSubtitle>
           </WelcomeCard>
 
-          {/* Quick Stats Card */}
           <QuickStatsCard>
             <QuickStatsTitle>Quick Stat [{currentQuarter}] expenses</QuickStatsTitle>
             <QuickStatsContent>
@@ -246,9 +236,7 @@ const Dashboard = () => {
             </QuickStatsContent>
           </QuickStatsCard>
 
-          {/* Cards Row */}
           <CardsRow>
-            {/* Deadlines Card */}
             <DeadlinesCard>
               <CardTitle>Deadlines:</CardTitle>
               <DeadlinesList>
@@ -270,7 +258,6 @@ const Dashboard = () => {
               </AddReminderButton>
             </DeadlinesCard>
 
-            {/* Expenses Summary Card */}
             <ExpensesSummaryCard>
               <CardTitle>Expenses Summary</CardTitle>
               <ExpensesContent>
@@ -301,7 +288,6 @@ const Dashboard = () => {
             </ExpensesSummaryCard>
           </CardsRow>
 
-          {/* AI Chat Card */}
           <AIChatCard>
             <AIChatTitle>AI Tax Advisor Chat</AIChatTitle>
             <AIChatMessage>
@@ -325,7 +311,6 @@ const Dashboard = () => {
 
       <Footer />
 
-      {/* Add Reminder Modal */}
       <AddReminderModal
         isOpen={showAddReminder}
         onClose={() => setShowAddReminder(false)}
