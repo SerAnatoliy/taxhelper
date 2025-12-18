@@ -38,6 +38,7 @@ class User(Base):
     bank_account = relationship("BankAccount", back_populates="user", uselist=False)
     transactions = relationship("Transaction", back_populates="user")
     reports = relationship("Report", back_populates="user")
+    reminders = relationship("Reminder", back_populates="user")
 
 class BankAccount(Base):
     __tablename__ = "bank_accounts"
@@ -86,6 +87,22 @@ class Report(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="reports")
+    
+class Reminder(Base):
+    __tablename__ = "reminders"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    due_date = Column(DateTime, nullable=False, index=True)
+    reminder_type = Column(String(50), default="custom")  # "tax_deadline" or "custom"
+    modelo = Column(String(20), nullable=True)  # "303", "130", "100", "390", etc.
+    is_completed = Column(Boolean, default=False)
+    notify_days_before = Column(Integer, default=7)  # Days before to send notification
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="reminders")
 
 Base.metadata.create_all(bind=engine)
 

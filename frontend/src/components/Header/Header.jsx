@@ -88,9 +88,9 @@ const Header = () => {
         <NavLink to="/#pricing" onClick={(e) => handleNavClick('pricing', e)}>
           Pricing
         </NavLink>
-        <NavLink to="/#blog" onClick={(e) => handleNavClick('blog', e)}>
+        {/* <NavLink to="/#blog" onClick={(e) => handleNavClick('blog', e)}>
           Blog
-        </NavLink>
+        </NavLink> */}
       </Nav>
 
       <LoginHeaderButton>

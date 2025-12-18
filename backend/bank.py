@@ -250,7 +250,6 @@ async def sync_bank_data(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Manually trigger a sync of all connected bank accounts"""
     bank_accounts = db.query(BankAccount).filter(
         BankAccount.user_id == current_user.id
     ).all()
@@ -283,7 +282,6 @@ async def get_bank_accounts(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all connected bank accounts for the user"""
     accounts = db.query(BankAccount).filter(
         BankAccount.user_id == current_user.id
     ).all()
@@ -308,7 +306,6 @@ async def get_transactions(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get transactions for the user"""
     transactions = db.query(Transaction).filter(
         Transaction.user_id == current_user.id
     ).order_by(Transaction.date.desc()).offset(offset).limit(limit).all()
@@ -332,7 +329,6 @@ async def disconnect_bank(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Disconnect a bank account"""
     account = db.query(BankAccount).filter(
         BankAccount.id == account_id,
         BankAccount.user_id == current_user.id

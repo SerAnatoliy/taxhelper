@@ -108,4 +108,45 @@ export const uploadBankStatement = async (file) => {
   return response.data;
 };
 
+export const getTaxDeadlines = async (monthsAhead = 6) => {
+  const response = await api.get('/reminders/tax-deadlines', {
+    params: { months_ahead: monthsAhead }
+  });
+  return response.data;
+};
+
+export const getReminders = async (includeCompleted = false) => {
+  const response = await api.get('/reminders/', {
+    params: { include_completed: includeCompleted }
+  });
+  return response.data;
+};
+
+export const getAllDeadlines = async (monthsAhead = 6, includeCompleted = false) => {
+  const response = await api.get('/reminders/all', {
+    params: { months_ahead: monthsAhead, include_completed: includeCompleted }
+  });
+  return response.data;
+};
+
+export const createReminder = async (reminderData) => {
+  const response = await api.post('/reminders/', reminderData);
+  return response.data;
+};
+
+export const updateReminder = async (reminderId, updateData) => {
+  const response = await api.patch(`/reminders/${reminderId}`, updateData);
+  return response.data;
+};
+
+export const deleteReminder = async (reminderId) => {
+  const response = await api.delete(`/reminders/${reminderId}`);
+  return response.data;
+};
+
+export const completeReminder = async (reminderId) => {
+  const response = await api.post(`/reminders/${reminderId}/complete`);
+  return response.data;
+};
+
 export default api;
