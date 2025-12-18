@@ -140,7 +140,6 @@ export const DashboardGrid = styled.div`
   }
 `;
 
-// Welcome Card
 export const WelcomeCard = styled.div`
   background: rgba(231, 248, 255, 0.8);
   border-radius: 16px;
@@ -177,7 +176,6 @@ export const WelcomeSubtitle = styled.p`
   }
 `;
 
-// Quick Stats Card
 export const QuickStatsCard = styled.div`
   background: ${theme.colors.white};
   border-radius: 16px;
@@ -223,7 +221,6 @@ export const QuickStatsChart = styled.div`
   }
 `;
 
-// Cards Row (Deadlines + Expenses)
 export const CardsRow = styled.div`
   display: flex;
   flex-direction: column;
@@ -238,7 +235,6 @@ export const CardsRow = styled.div`
   }
 `;
 
-// Deadlines Card
 export const DeadlinesCard = styled.div`
   background: ${theme.colors.white};
   border-radius: 16px;
@@ -292,7 +288,6 @@ export const AddReminderButton = styled.button`
   }
 `;
 
-// Expenses Summary Card
 export const ExpensesSummaryCard = styled.div`
   background: ${theme.colors.white};
   border-radius: 16px;
@@ -346,16 +341,22 @@ export const ExpensesStat = styled.div`
   color: ${theme.colors.mainFont};
 `;
 
-// AI Chat Card
-export const AIChatCard = styled.div`
-  background: ${theme.colors.white};
-  border-radius: 16px;
-  padding: 1.5rem;
+export const RightColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 
   @media (min-width: 1024px) {
     grid-column: 2;
     grid-row: 2 / 4;
   }
+`;
+
+export const AIChatCard = styled.div`
+  background: ${theme.colors.white};
+  border-radius: 16px;
+  padding: 1.5rem;
+  flex: 1;
 `;
 
 export const AIChatTitle = styled.h3`
@@ -383,7 +384,6 @@ export const AIChatInputContainer = styled.div`
   border: 2px solid ${theme.colors.mainFont};
   border-radius: 24px;
   padding: 0.5rem 1rem;
-  margin-bottom: 1rem;
 `;
 
 export const AIChatInput = styled.input`

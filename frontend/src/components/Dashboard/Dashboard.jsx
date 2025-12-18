@@ -52,6 +52,7 @@ import {
   LegendDot,
   ExpensesStats,
   ExpensesStat,
+  RightColumn,
   AIChatCard,
   AIChatTitle,
   AIChatMessage,
@@ -84,131 +85,89 @@ const DonutChart = ({ expenses = 0, income = 0 }) => {
   );
 };
 
-const formatDeadlineDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
-
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [deadlinesData, setDeadlinesData] = useState({ tax_deadlines: [], custom_reminders: [] });
-  const [chatMessage, setChatMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
   const [hasNotifications, setHasNotifications] = useState(true);
+  const [chatMessage, setChatMessage] = useState('');
+  const [allDeadlines, setAllDeadlines] = useState([]);
   const [showAddReminder, setShowAddReminder] = useState(false);
+  
+  const [expenses, setExpenses] = useState(0);
+  const [income, setIncome] = useState(0);
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const [avgDeduction, setAvgDeduction] = useState(0);
 
   useEffect(() => {
-    const loadData = async () => {
+    const fetchData = async () => {
       try {
-        const [profileData, transactionsData, deadlines] = await Promise.all([
-          getProfile(),
-          getBankTransactions(100, 0).catch(() => []),
-          getAllDeadlines(6, false).catch(() => ({ tax_deadlines: [], custom_reminders: [] })),
-        ]);
-        setProfile(profileData);
-        setTransactions(transactionsData);
-        setDeadlinesData(deadlines);
+        const profile = await getProfile();
+        setUserData(profile);
+        
+        const deadlines = await getAllDeadlines();
+        setAllDeadlines(deadlines);
+        
+        const transactions = await getBankTransactions();
+        const exp = transactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0);
+        const inc = transactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0);
+        
+        setExpenses(exp);
+        setIncome(inc);
+        setTotalExpenses(exp);
+        setAvgDeduction(exp * 0.21);
       } catch (error) {
-        console.error('Failed to load dashboard data:', error);
-        if (error.response?.status === 401) {
-          navigate('/');
-        }
-      } finally {
-        setIsLoading(false);
+        console.error('Error fetching dashboard data:', error);
       }
     };
-    loadData();
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
+    
+    fetchData();
+  }, []);
 
   const handleAddReminder = async (reminderData) => {
     try {
       await createReminder(reminderData);
-      const deadlines = await getAllDeadlines(6, false);
-      setDeadlinesData(deadlines);
-      setShowAddReminder(false);
+      const deadlines = await getAllDeadlines();
+      setAllDeadlines(deadlines);
     } catch (error) {
-      console.error('Failed to create reminder:', error);
+      console.error('Error adding reminder:', error);
     }
   };
 
-  const expenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  
-  const income = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  const formatDeadlineDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  };
 
-  const totalExpenses = expenses;
-  const avgDeduction = expenses * 0.21;
-
-  const currentQuarter = `Q${Math.ceil((new Date().getMonth() + 1) / 3)}`;
-
-  const firstName = profile?.full_name?.split(' ')[0] || 'User';
-
-  const allDeadlines = [
-    ...deadlinesData.tax_deadlines.map(d => ({
-      name: d.name,
-      date: d.due_date,
-      daysUntil: d.days_until_due,
-      isOverdue: d.is_overdue,
-      type: 'tax'
-    })),
-    ...deadlinesData.custom_reminders.map(r => ({
-      name: r.title,
-      date: r.due_date,
-      daysUntil: r.days_until_due,
-      isOverdue: r.is_overdue,
-      type: 'custom'
-    }))
-  ]
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .slice(0, 3);
-
-  const nextIVADeadline = deadlinesData.tax_deadlines.find(d => 
-    d.modelo === '303' && d.days_until_due >= 0
-  );
-
-  if (isLoading) {
-    return (
-      <DashboardContainer>
-        <MainContent style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          Loading...
-        </MainContent>
-      </DashboardContainer>
-    );
-  }
+  const firstName = userData?.full_name?.split(' ')[0] || 'User';
 
   return (
     <DashboardContainer>
       <DashboardHeader>
         <HeaderLeft onClick={() => navigate('/dashboard')}>
-          <AnyIcon icon={TaxHelperLogo} size="48px" />
+          <AnyIcon icon={TaxHelperLogo} size="40px" />
           <LogoText>TaxHelper</LogoText>
         </HeaderLeft>
-
         <HeaderRight>
-          <NotificationIcon onClick={() => setHasNotifications(!hasNotifications)}>
-            <AnyIcon icon={hasNotifications ? NotificationActive : NotificationInactive} size="24px" />
+          <NotificationIcon>
+            <AnyIcon 
+              icon={hasNotifications ? NotificationActive : NotificationInactive} 
+              size="24px" 
+            />
           </NotificationIcon>
           <UserInfo>
-            <UserName>{firstName}</UserName>
+            <UserName>{userData?.full_name || 'Loading...'}</UserName>
             <UserAvatar>
               <AnyIcon icon={UserIconSvg} size="24px" />
             </UserAvatar>
           </UserInfo>
-          <MenuButton onClick={() => setMenuOpen(!menuOpen)}>
-            <span />
-            <span />
-            <span />
+          <MenuButton>
+            <span></span>
+            <span></span>
+            <span></span>
           </MenuButton>
         </HeaderRight>
       </DashboardHeader>
@@ -218,18 +177,16 @@ const Dashboard = () => {
           <WelcomeCard>
             <WelcomeTitle>Welcome back, {firstName}!</WelcomeTitle>
             <WelcomeSubtitle>
-              {nextIVADeadline ? (
-                <>Your next IVA deadline: {formatDeadlineDate(nextIVADeadline.due_date)} ({nextIVADeadline.days_until_due} days left)</>
-              ) : (
-                <>No upcoming IVA deadlines</>
-              )}
+              Let's make your tax management easier today.
             </WelcomeSubtitle>
           </WelcomeCard>
 
           <QuickStatsCard>
-            <QuickStatsTitle>Quick Stat [{currentQuarter}] expenses</QuickStatsTitle>
+            <QuickStatsTitle>Quick Tax Overview</QuickStatsTitle>
             <QuickStatsContent>
-              <QuickStatsAmount>€ {totalExpenses.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</QuickStatsAmount>
+              <QuickStatsAmount>
+                €{(income - expenses).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+              </QuickStatsAmount>
               <QuickStatsChart>
                 <AnyIcon icon={ChartGrafic} size="80px" />
               </QuickStatsChart>
@@ -238,7 +195,7 @@ const Dashboard = () => {
 
           <CardsRow>
             <DeadlinesCard>
-              <CardTitle>Deadlines:</CardTitle>
+              <CardTitle>Upcoming Deadlines</CardTitle>
               <DeadlinesList>
                 {allDeadlines.length > 0 ? (
                   allDeadlines.map((deadline, index) => (
@@ -288,24 +245,26 @@ const Dashboard = () => {
             </ExpensesSummaryCard>
           </CardsRow>
 
-          <AIChatCard>
-            <AIChatTitle>AI Tax Advisor Chat</AIChatTitle>
-            <AIChatMessage>
-              Bot: Hi {firstName}! Ask your question about taxes
-            </AIChatMessage>
-            <AIChatInputContainer>
-              <AIChatInput
-                type="text"
-                placeholder="Type your message ..."
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-              />
-              <AIChatSendButton>
-                <AnyIcon icon={SendMessage} size="24px" />
-              </AIChatSendButton>
-            </AIChatInputContainer>
+          <RightColumn>
+            <AIChatCard>
+              <AIChatTitle>AI Tax Advisor Chat</AIChatTitle>
+              <AIChatMessage>
+                Bot: Hi {firstName}! Ask your question about taxes
+              </AIChatMessage>
+              <AIChatInputContainer>
+                <AIChatInput
+                  type="text"
+                  placeholder="Type your message ..."
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                />
+                <AIChatSendButton>
+                  <AnyIcon icon={SendMessage} size="24px" />
+                </AIChatSendButton>
+              </AIChatInputContainer>
+            </AIChatCard>
             <GenerateInvoiceButton>Generate invoice</GenerateInvoiceButton>
-          </AIChatCard>
+          </RightColumn>
         </DashboardGrid>
       </MainContent>
 
