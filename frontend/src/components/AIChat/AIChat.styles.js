@@ -81,7 +81,7 @@ export const MessageBubble = styled.div`
     border-bottom-right-radius: 4px;
   ` : `
     align-self: flex-start;
-    background: #f5f5f5;
+    background: ${theme.colors.lightGrey};
     color: ${theme.colors.mainFont};
     border-bottom-left-radius: 4px;
   `}
@@ -161,7 +161,7 @@ export const ModeloTag = styled.span`
 
 export const OffTopicBadge = styled.span`
   background: #ffebee;
-  color: #c62828;
+  color: ${theme.colors.error};
   font-size: 11px;
   font-weight: 600;
   padding: 0.2rem 0.5rem;
@@ -179,7 +179,7 @@ export const TypingIndicator = styled.div`
   display: flex;
   gap: 4px;
   padding: 0.75rem 1rem;
-  background: #f5f5f5;
+  background: ${theme.colors.lightGrey};
   border-radius: 16px;
   border-bottom-left-radius: 4px;
 `;

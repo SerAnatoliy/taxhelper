@@ -52,7 +52,7 @@ export const FormTitle = styled.h2`
 `;
 
 export const ErrorText = styled.p`
-  color: #ef4444;
+  color: ${theme.colors.error};
   font-size: 0.875rem;
   margin-bottom: 1rem;
   text-align: center;

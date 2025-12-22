@@ -55,7 +55,6 @@ export const BurgerButton = styled.button`
   }
 `;
 
-// Full-screen overlay behind mobile menu
 export const MobileMenuOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -73,7 +72,6 @@ export const MobileMenuOverlay = styled.div`
   }
 `;
 
-// Full-screen mobile menu
 export const MobileMenu = styled.div`
   position: fixed;
   top: 0;

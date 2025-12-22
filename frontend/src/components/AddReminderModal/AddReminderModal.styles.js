@@ -72,7 +72,7 @@ export const Input = styled.input`
   padding: 0 1rem;
   font-size: 16px;
   color: ${theme.colors.mainFont};
-  background: #f5f5f5;
+  background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
   border-radius: 12px;
   box-sizing: border-box;
@@ -95,7 +95,7 @@ export const TextArea = styled.textarea`
   font-size: 16px;
   font-family: inherit;
   color: ${theme.colors.mainFont};
-  background: #f5f5f5;
+  background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
   border-radius: 12px;
   box-sizing: border-box;
@@ -118,7 +118,7 @@ export const Select = styled.select`
   padding: 0 1rem;
   font-size: 16px;
   color: ${theme.colors.mainFont};
-  background: #f5f5f5;
+  background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
   border-radius: 12px;
   box-sizing: border-box;
