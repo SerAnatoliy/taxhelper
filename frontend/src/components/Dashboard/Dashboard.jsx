@@ -59,6 +59,7 @@ import {
 import AddReminderModal from '../AddReminderModal/AddReminderModal';
 import SideMenu from '../SideMenu/SideMenu';
 import AIChat from '../AIChat/AIChat';
+import GenerateInvoiceModal from '../GenerateInvoiceModal/GenerateInvoiceModal';
 
 const DonutChart = ({ expenses = 0, income = 0 }) => {
   const total = expenses + income || 1;
@@ -93,6 +94,7 @@ const Dashboard = () => {
   const [income, setIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [avgDeduction, setAvgDeduction] = useState(0);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -137,6 +139,16 @@ const Dashboard = () => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   };
+
+  const handleGenerateInvoice = async (invoiceData) => {
+  try {
+    console.log('Invoice data to save:', invoiceData);    
+    alert('Invoice generated successfully!');
+  } catch (error) {
+    console.error('Failed to generate invoice:', error);
+    throw error;
+  }
+};
 
   const firstName = userData?.full_name?.split(' ')[0] || 'User';
 
@@ -244,8 +256,9 @@ const Dashboard = () => {
 
             <RightColumn>
               <AIChat userName={firstName} />
-              <GenerateInvoiceButton>Generate invoice</GenerateInvoiceButton>
-            </RightColumn>
+            <GenerateInvoiceButton onClick={() => setShowInvoiceModal(true)}>
+              Generate invoice
+            </GenerateInvoiceButton>            </RightColumn>
           </BottomRow>
         </DashboardGrid>
       </MainContent>
@@ -256,6 +269,11 @@ const Dashboard = () => {
         isOpen={showAddReminder}
         onClose={() => setShowAddReminder(false)}
         onSubmit={handleAddReminder}
+      />
+      <GenerateInvoiceModal
+        isOpen={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        onSubmit={handleGenerateInvoice}
       />
 
       <SideMenu 

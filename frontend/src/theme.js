@@ -14,5 +14,6 @@ export const theme = {
     adviceGreen: '#02B0C2 opacity 0.6',
     labelBackground: '#FCCA3A opacity 0.5',
     successGreen: '#02C268',
+    lightGrey: '#F5F5F5',
   },
 };

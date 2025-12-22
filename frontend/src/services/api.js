@@ -178,4 +178,97 @@ export const startNewConversation = async () => {
   return response.data;
 };
 
-export default api;
+
+/**
+ * Create a new invoice
+ * @param {Object} invoiceData - Invoice data from the form
+ * @returns {Promise<Object>} Created invoice response
+ */
+export const createInvoice = async (invoiceData) => {
+  let invoiceDate = invoiceData.invoiceDate;
+  if (invoiceDate && !invoiceDate.includes('T')) {
+    invoiceDate = `${invoiceDate}T00:00:00`;
+  }
+
+  const payload = {
+    business_name: invoiceData.businessName,
+    registration_number: invoiceData.registrationNumber || null,
+    business_address: invoiceData.businessAddress || null,
+    city_region: invoiceData.cityRegion || null,
+    representative: invoiceData.representative || null,
+    department: invoiceData.department || null,
+    client_name: invoiceData.clientName,
+    client_address: invoiceData.clientAddress || null,
+    client_contact: invoiceData.clientContact || null,
+    reference_number: invoiceData.referenceNumber || null,
+    invoice_number: invoiceData.invoiceNumber,
+    invoice_date: invoiceDate,
+    service_description: invoiceData.serviceDescription || null,
+    payment_terms: invoiceData.paymentTerms || null,
+    items: invoiceData.items
+      .filter(item => item.description && item.description.trim() !== '')
+      .map(item => ({
+        description: item.description,
+        quantity: parseFloat(item.quantity) || 1,
+        unit_price: parseFloat(item.unitPrice) || 0,
+      })),
+  };
+
+  console.log('Creating invoice with payload:', payload);
+
+  const response = await api.post('/invoices/', payload);
+  return response.data;
+};
+
+/**
+ * Get all invoices for current user
+ * @param {number} limit - Max number of invoices
+ * @param {number} offset - Pagination offset
+ * @returns {Promise<Array>} List of invoices
+ */
+export const getInvoices = async (limit = 50, offset = 0) => {
+  const response = await api.get('/invoices/', { params: { limit, offset } });
+  return response.data;
+};
+
+/**
+ * Get a specific invoice with details
+ * @param {number} invoiceId - Invoice ID
+ * @returns {Promise<Object>} Invoice details
+ */
+export const getInvoice = async (invoiceId) => {
+  const response = await api.get(`/invoices/${invoiceId}`);
+  return response.data;
+};
+
+/**
+ * Download invoice as PDF
+ * @param {number} invoiceId - Invoice ID
+ * @returns {Promise<Blob>} PDF blob
+ */
+export const downloadInvoicePdf = async (invoiceId) => {
+  const response = await api.get(`/invoices/${invoiceId}/pdf`, {
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `invoice_${invoiceId}.pdf`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+  
+  return response.data;
+};
+
+/**
+ * Delete an invoice
+ * @param {number} invoiceId - Invoice ID
+ * @returns {Promise<Object>} Delete confirmation
+ */
+export const deleteInvoice = async (invoiceId) => {
+  const response = await api.delete(`/invoices/${invoiceId}`);
+  return response.data;
+};

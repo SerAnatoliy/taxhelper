@@ -40,6 +40,7 @@ class User(Base):
     reports = relationship("Report", back_populates="user")
     reminders = relationship("Reminder", back_populates="user")
     chat_messages = relationship("ChatMessage", back_populates="user")
+    invoices = relationship("Invoice", back_populates="user")
 
 
 class BankAccount(Base):
@@ -58,6 +59,7 @@ class BankAccount(Base):
     created_at = Column(DateTime, default=datetime.utcnow)  
     
     user = relationship("User", back_populates="bank_account")
+
     
 class Transaction(Base):
     __tablename__ = "transactions"
@@ -89,7 +91,7 @@ class Report(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="reports")
-    
+
 class Reminder(Base):
     __tablename__ = "reminders"
     id = Column(Integer, primary_key=True, index=True)
@@ -105,7 +107,7 @@ class Reminder(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     user = relationship("User", back_populates="reminders")
-    
+
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
     
@@ -114,14 +116,60 @@ class ChatMessage(Base):
     conversation_id = Column(String(50), index=True)  
     role = Column(String(20))  
     content = Column(Text)  
-
     response_data = Column(JSON, nullable=True)
-
     is_off_topic = Column(Boolean, default=False)
     tokens_used = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="chat_messages")
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    
+    business_name = Column(String(200), nullable=False)
+    registration_number = Column(String(50), nullable=True)
+    business_address = Column(String(300), nullable=True)
+    city_region = Column(String(100), nullable=True)
+    representative = Column(String(100), nullable=True)
+    department = Column(String(100), nullable=True)
+    
+    client_name = Column(String(200), nullable=False)
+    client_address = Column(String(300), nullable=True)
+    client_contact = Column(String(200), nullable=True)
+    reference_number = Column(String(50), nullable=True)
+    
+    invoice_number = Column(String(50), nullable=False, index=True)
+    invoice_date = Column(DateTime, nullable=False)
+    
+    service_description = Column(Text, nullable=True)
+    payment_terms = Column(Text, nullable=True)
+    
+    total = Column(Numeric(10, 2), nullable=False)
+    status = Column(String(20), default="created")  
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="invoices")
+    items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
+
+
+class InvoiceItem(Base):
+    __tablename__ = "invoice_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    invoice_id = Column(Integer, ForeignKey("invoices.id"), index=True)
+    
+    description = Column(String(500), nullable=False)
+    quantity = Column(Numeric(10, 2), nullable=False)
+    unit_price = Column(Numeric(10, 2), nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
+    
+    invoice = relationship("Invoice", back_populates="items")
+
 
 Base.metadata.create_all(bind=engine)
 
