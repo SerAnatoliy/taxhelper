@@ -95,28 +95,6 @@ export const Label = styled.label`
   margin-bottom: 0.5rem;
 `;
 
-export const Input = styled.input`
-  width: 100%;
-  height: 48px;
-  padding: 0 1rem;
-  font-size: 16px;
-  color: ${theme.colors.mainFont};
-  background: ${theme.colors.lightGrey};
-  border: 2px solid transparent;
-  border-radius: 12px;
-  box-sizing: border-box;
-
-  &:focus {
-    outline: none;
-    border-color: ${theme.colors.logoBlue};
-  }
-
-  &::placeholder {
-    color: ${theme.colors.mainFont};
-    opacity: 0.5;
-  }
-`;
-
 export const TextArea = styled.textarea`
   width: 100%;
   min-height: 80px;
@@ -209,7 +187,6 @@ export const RemoveItemButton = styled.button`
     background: rgba(218, 28, 28, 0.2);
   }
 `;
-
 
 export const AddItemButton = styled.button`
   display: flex;
