@@ -1,11 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
-
-export const VerificationCardWrapper = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-`;
+import { theme } from '../../../theme';
 
 export const VerificationCard = styled.div`
   width: 100%;

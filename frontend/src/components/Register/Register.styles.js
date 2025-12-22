@@ -39,10 +39,6 @@ export const PasswordFieldsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-
-  @media (min-width: 768px) {
-    max-width: 320px;
-  }
 `;
 
 export const PasswordRequirements = styled.ul`
@@ -75,4 +71,11 @@ export const LoginText = styled.p`
   @media (min-width: 768px) {
     font-size: 16px;
   }
+`;
+
+export const ErrorMessage = styled.p`
+  font-size: 14px;
+  color: ${theme.colors.error};
+  text-align: center;
+  margin: 0;
 `;

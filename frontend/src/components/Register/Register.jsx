@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import styled from 'styled-components';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
 import { SubmitButton } from '../Shared/ActionButton/ActionButton';
 import { register } from '../../services/api';
-import { theme } from '../../theme';
 import LoginModal from '../LoginModal/LoginModal';
 import {
   PageTitle,
@@ -13,94 +11,30 @@ import {
   FormLink,
   GradientPageContainer,
   FormContainer,
-} from '../Shared/FormComponents/FormComponents.styles.js';
-import { FormCheckbox, FormInput } from '../Shared/FormComponents/FormComponents.jsx';
-
-const MainContent = styled.main`
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 2rem 1rem;
-
-  @media (min-width: 768px) {
-    padding: 3rem 2rem;
-  }
-`;
-
-const FormFieldsContainer = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-const NameFieldsRow = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    gap: 1.5rem;
-
-    > div {
-      flex: 1;
-    }
-  }
-`;
-
-const PasswordFieldsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-const PasswordRequirements = styled.ul`
-  margin: 0;
-  padding: 0.75rem 1rem;
-  list-style: none;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 8px;
-  font-size: 13px;
-`;
-
-const RequirementItem = styled.li`
-  color: ${({ $met }) => ($met ? theme.colors.successGreen : theme.colors.mainFont)};
-  padding: 2px 0;
-  transition: color 0.2s ease;
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
-`;
-
-const LoginText = styled.p`
-  font-size: 14px;
-  color: ${theme.colors.mainFont};
-  text-align: left;
-  margin: 0.5rem 0 0 0;
-
-  @media (min-width: 768px) {
-    font-size: 16px;
-  }
-`;
-
-const ErrorMessage = styled.p`
-  font-size: 14px;
-  color: ${theme.colors.error};
-  text-align: center;
-  margin: 0;
-`;
+} from '../Shared/FormComponents/FormComponents.styles';
+import { FormCheckbox, FormInput } from '../Shared/FormComponents/FormComponents';
+import {
+  MainContent,
+  FormFieldsContainer,
+  NameFieldsRow,
+  PasswordFieldsContainer,
+  PasswordRequirements,
+  RequirementItem,
+  ButtonContainer,
+  LoginText,
+  ErrorMessage,
+} from './Register.styles';
 
 const PASSWORD_RULES = [
   { id: 'length', label: 'At least 8 characters', test: (pwd) => pwd.length >= 8 },
   { id: 'uppercase', label: 'One uppercase letter (A-Z)', test: (pwd) => /[A-Z]/.test(pwd) },
   { id: 'lowercase', label: 'One lowercase letter (a-z)', test: (pwd) => /[a-z]/.test(pwd) },
   { id: 'number', label: 'One number (0-9)', test: (pwd) => /\d/.test(pwd) },
-  { id: 'special', label: 'One special character (!@#$%...)', test: (pwd) => /[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]/.test(pwd) },
+  {
+    id: 'special',
+    label: 'One special character (!@#$%...)',
+    test: (pwd) => /[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]/.test(pwd),
+  },
 ];
 
 const Registration = () => {
@@ -216,8 +150,7 @@ const Registration = () => {
 
   const checkboxLabel = (
     <>
-      I agree to Terms & Conditions and{' '}
-      <FormLink to="/privacy">Privacy Policy</FormLink>
+      I agree to Terms & Conditions and <FormLink to="/privacy">Privacy Policy</FormLink>
     </>
   );
 
@@ -228,8 +161,8 @@ const Registration = () => {
         <FormContainer as="form" onSubmit={handleSubmit}>
           <PageTitle>Sign up for TaxHelper</PageTitle>
           <PageSubtitle>
-            Create your account in 2 minutes to simplify your taxes. Get started
-            with our 15-day free trial – no card required.
+            Create your account in 2 minutes to simplify your taxes. Get started with our 15-day
+            free trial – no card required.
           </PageSubtitle>
 
           <FormFieldsContainer>
@@ -277,10 +210,7 @@ const Registration = () => {
               {(showPasswordRules || formData.password) && (
                 <PasswordRequirements>
                   {PASSWORD_RULES.map((rule) => (
-                    <RequirementItem
-                      key={rule.id}
-                      $met={rule.test(formData.password)}
-                    >
+                    <RequirementItem key={rule.id} $met={rule.test(formData.password)}>
                       {rule.test(formData.password) ? '✓' : '○'} {rule.label}
                     </RequirementItem>
                   ))}
@@ -330,7 +260,7 @@ const Registration = () => {
         </FormContainer>
       </MainContent>
       <Footer />
-      
+
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </GradientPageContainer>
   );
