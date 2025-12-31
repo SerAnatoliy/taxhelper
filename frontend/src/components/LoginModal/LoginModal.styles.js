@@ -7,7 +7,7 @@ export const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);  // Semi-transparent overlay
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,7 +61,7 @@ export const ErrorText = styled.p`
 export const RegisterLinkText = styled.p`
   text-align: center;
   margin-top: 1rem;
-  color:${theme.colors.mainFont};
+  color: ${theme.colors.mainFont};
   a {
     color: ${theme.colors.primaryBlue};
     text-decoration: none;
@@ -78,8 +78,19 @@ export const FieldsForm = styled.form`
   width: 100%;
 `;
 
-export const RegisterLink =styled.a`
+export const RegisterLink = styled.a`
   text-align: center;
   margin-top: 1rem;
-  color:${theme.colors.logoBlue};
+  color: ${theme.colors.logoBlue};
+`;
+
+export const SessionExpiredMessage = styled.div`
+  background: rgba(218, 28, 28, 0.1);
+  border: 1px solid ${theme.colors.error};
+  color: ${theme.colors.error};
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 1rem;
 `;

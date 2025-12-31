@@ -1,16 +1,34 @@
-import { useState } from 'react';
-import { ModalOverlay, ModalContent, CloseButton, FormTitle, ErrorText, RegisterLink, RegisterLinkText, FieldsForm } from './LoginModal.styles';
+import { useState, useEffect } from 'react';
+import { 
+  ModalOverlay, 
+  ModalContent, 
+  CloseButton, 
+  FormTitle, 
+  ErrorText, 
+  RegisterLink, 
+  RegisterLinkText, 
+  FieldsForm,
+  SessionExpiredMessage,
+} from './LoginModal.styles';
 import { login } from '../../services/api.js';  
 import { AnyIcon } from '../Shared/AnyIcon/AnyIcon.jsx';
 import CloseIcon from '../../assets/icons/CloseIcon.svg?react';
 import { TextInput } from '../Shared/TextInput/TextInput.jsx';
 import { SubmitButton } from '../Shared/ActionButton/ActionButton.jsx';
 
-const LoginModal = ({ isOpen, onClose }) => {
+const LoginModal = ({ isOpen, onClose, sessionExpired = false }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail('');
+      setPassword('');
+      setError('');
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,8 +52,18 @@ const LoginModal = ({ isOpen, onClose }) => {
   return (
     <ModalOverlay $open={isOpen} onClick={onClose}>
       <ModalContent onClick={(e) => e.stopPropagation()} $open={isOpen}>
-        <CloseButton onClick={onClose}><AnyIcon icon={CloseIcon} size="36px" /></CloseButton>
+        <CloseButton onClick={onClose}>
+          <AnyIcon icon={CloseIcon} size="36px" />
+        </CloseButton>
+        
         <FormTitle>Login</FormTitle>
+        
+        {sessionExpired && (
+          <SessionExpiredMessage>
+            Your session has expired. Please log in again to continue.
+          </SessionExpiredMessage>
+        )}
+        
         <FieldsForm onSubmit={handleSubmit}>
           <TextInput
             type="email"
@@ -52,10 +80,11 @@ const LoginModal = ({ isOpen, onClose }) => {
             required
           />
           {error && <ErrorText>{error}</ErrorText>}
-          <SubmitButton type="submit" disabled={loading} >
+          <SubmitButton type="submit" disabled={loading}>
             {loading ? 'Loading...' : 'Login'}
           </SubmitButton>
         </FieldsForm>
+        
         <RegisterLinkText>
           Don't have an account? <RegisterLink href="/register">Register</RegisterLink>
         </RegisterLinkText>

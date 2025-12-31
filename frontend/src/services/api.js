@@ -17,6 +17,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/' && currentPath !== '/register') {
+        window.location.href = '/?showLogin=true&sessionExpired=true';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ============== AUTH API ==============
+
 export const login = async (email, password) => {
   const params = new URLSearchParams({ username: email, password });
   const response = await api.post('/auth/login', params, {
@@ -36,10 +53,11 @@ export const getProfile = async () => {
 };
 
 export const updateProfile = async (data) => {
-  // data: { family_status?, num_children?, region? }
   const response = await api.patch('/auth/profile', data);
   return response.data;
 };
+
+// ============== VERIFF API ==============
 
 export const createVeriffSession = async () => {
   const response = await api.post('/veriff/create-session');
@@ -67,6 +85,8 @@ export const submitKYC = async (dniNumber, frontFile, backFile) => {
   });
   return response.data;
 };
+
+// ============== BANK API ==============
 
 export const createPlaidLinkToken = async () => {
   const response = await api.post('/bank/create-link-token');
@@ -107,6 +127,8 @@ export const uploadBankStatement = async (file) => {
   });
   return response.data;
 };
+
+// ============== REMINDERS API ==============
 
 export const getTaxDeadlines = async (monthsAhead = 6) => {
   const response = await api.get('/reminders/tax-deadlines', {
@@ -149,6 +171,7 @@ export const completeReminder = async (reminderId) => {
   return response.data;
 };
 
+// ============== CHAT API ==============
 
 export const sendChatMessage = async (message, conversationId = null) => {
   const response = await api.post('/chat/message', {
@@ -178,12 +201,8 @@ export const startNewConversation = async () => {
   return response.data;
 };
 
+// ============== INVOICES API ==============
 
-/**
- * Create a new invoice
- * @param {Object} invoiceData - Invoice data from the form
- * @returns {Promise<Object>} Created invoice response
- */
 export const createInvoice = async (invoiceData) => {
   let invoiceDate = invoiceData.invoiceDate;
   if (invoiceDate && !invoiceDate.includes('T')) {
@@ -214,38 +233,20 @@ export const createInvoice = async (invoiceData) => {
       })),
   };
 
-  console.log('Creating invoice with payload:', payload);
-
   const response = await api.post('/invoices/', payload);
   return response.data;
 };
 
-/**
- * Get all invoices for current user
- * @param {number} limit - Max number of invoices
- * @param {number} offset - Pagination offset
- * @returns {Promise<Array>} List of invoices
- */
 export const getInvoices = async (limit = 50, offset = 0) => {
   const response = await api.get('/invoices/', { params: { limit, offset } });
   return response.data;
 };
 
-/**
- * Get a specific invoice with details
- * @param {number} invoiceId - Invoice ID
- * @returns {Promise<Object>} Invoice details
- */
 export const getInvoice = async (invoiceId) => {
   const response = await api.get(`/invoices/${invoiceId}`);
   return response.data;
 };
 
-/**
- * Download invoice as PDF
- * @param {number} invoiceId - Invoice ID
- * @returns {Promise<Blob>} PDF blob
- */
 export const downloadInvoicePdf = async (invoiceId) => {
   const response = await api.get(`/invoices/${invoiceId}/pdf`, {
     responseType: 'blob',
@@ -263,21 +264,13 @@ export const downloadInvoicePdf = async (invoiceId) => {
   return response.data;
 };
 
-/**
- * Delete an invoice
- * @param {number} invoiceId - Invoice ID
- * @returns {Promise<Object>} Delete confirmation
- */
 export const deleteInvoice = async (invoiceId) => {
   const response = await api.delete(`/invoices/${invoiceId}`);
   return response.data;
 };
 
-/**
- * Upload expense files (invoices/receipts) for parsing
- * @param {File[]} files - Array of files to upload
- * @returns {Promise<Array>} Parsed expense results
- */
+// ============== EXPENSES API ==============
+
 export const uploadExpenses = async (files) => {
   const formData = new FormData();
   files.forEach((file) => {
@@ -290,11 +283,6 @@ export const uploadExpenses = async (files) => {
   return response.data;
 };
 
-/**
- * Get all expenses for current user
- * @param {Object} filters - Optional filters { dateFrom, dateTo, type }
- * @returns {Promise<Array>} List of expenses
- */
 export const getExpenses = async (filters = {}) => {
   const params = {};
   if (filters.dateFrom) params.date_from = filters.dateFrom;
@@ -313,54 +301,26 @@ export const getExpenses = async (filters = {}) => {
   }
 };
 
-/**
- * Get a single expense by ID
- * @param {number} expenseId - Expense ID
- * @returns {Promise<Object>} Expense details
- */
 export const getExpense = async (expenseId) => {
   const response = await api.get(`/expenses/${expenseId}`);
   return response.data;
 };
 
-/**
- * Create a new expense manually
- * @param {Object} expenseData - Expense data
- * @returns {Promise<Object>} Created expense
- */
 export const createExpense = async (expenseData) => {
   const response = await api.post('/expenses/', expenseData);
   return response.data;
 };
 
-/**
- * Update an existing expense
- * @param {number} expenseId - Expense ID
- * @param {Object} expenseData - Updated expense data
- * @returns {Promise<Object>} Updated expense
- */
 export const updateExpense = async (expenseId, expenseData) => {
   const response = await api.patch(`/expenses/${expenseId}`, expenseData);
   return response.data;
 };
 
-/**
- * Delete an expense
- * @param {number} expenseId - Expense ID
- * @returns {Promise<Object>} Delete confirmation
- */
 export const deleteExpense = async (expenseId) => {
   const response = await api.delete(`/expenses/${expenseId}`);
   return response.data;
 };
 
-/**
- * Get tax advice for an expense
- * @param {string} fullText - Extracted invoice text
- * @param {string} userRegion - User's region
- * @param {string} userFamilyStatus - User's family status
- * @returns {Promise<Object>} Tax advice response
- */
 export const getExpenseAdvice = async (fullText, userRegion, userFamilyStatus) => {
   const response = await api.post('/expenses/advice', {
     full_text: fullText,
@@ -369,3 +329,5 @@ export const getExpenseAdvice = async (fullText, userRegion, userFamilyStatus) =
   });
   return response.data;
 };
+
+export default api;

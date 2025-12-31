@@ -1,8 +1,8 @@
-// frontend/src/components/Landing/index.jsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
+import LoginModal from '../LoginModal/LoginModal';
 import { SubmitButton, ActionButton } from '../Shared/ActionButton/ActionButton';
 import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
 import {
@@ -27,8 +27,9 @@ import {
   PricingList,
   PricingListItem,
   PricingButtonContainer,
+  SessionExpiredBanner,
 } from './Landing.styles';
-import{FormInput} from '../Shared/FormComponents/FormComponents.jsx';
+import { FormInput } from '../Shared/FormComponents/FormComponents.jsx';
 
 import AIIcon from '../../assets/icons/AI.svg?react';
 import KYCIcon from '../../assets/icons/KYC.svg?react';
@@ -64,8 +65,34 @@ const PRICING_PLANS = [
 
 const Landing = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    const shouldShowLogin = searchParams.get('showLogin') === 'true';
+    const isSessionExpired = searchParams.get('sessionExpired') === 'true';
+    
+    if (shouldShowLogin) {
+      setShowLoginModal(true);
+      setSessionExpired(isSessionExpired);
+      
+      searchParams.delete('showLogin');
+      searchParams.delete('sessionExpired');
+      setSearchParams(searchParams, { replace: true });
+    }
+    
+    if (location.state?.showLogin) {
+      setShowLoginModal(true);
+      setSessionExpired(location.state?.sessionExpired || false);
+      
+      navigate('/', { replace: true, state: {} });
+    }
+  }, [searchParams, setSearchParams, location.state, navigate]);
 
   const validateEmail = (value) => {
     if (!value.trim()) return 'Please enter your email';
@@ -88,9 +115,25 @@ const Landing = () => {
     if (emailError) setEmailError('');
   };
 
+  const handleLoginClose = () => {
+    setShowLoginModal(false);
+    setSessionExpired(false);
+  };
+
+  const handleHeaderLoginClick = () => {
+    setShowLoginModal(true);
+  };
+
   return (
     <GradientPageContainer>
-      <Header />
+      <Header onLoginClick={handleHeaderLoginClick} />
+      
+      {sessionExpired && showLoginModal && (
+        <SessionExpiredBanner>
+          Your session has expired. Please log in again.
+        </SessionExpiredBanner>
+      )}
+      
       <MainContent>
         <HeroSection>
           <PageTitle $size="48px">Save 20+ Hours on Taxes with AI</PageTitle>
@@ -153,7 +196,14 @@ const Landing = () => {
           </PricingButtonContainer>
         </PricingSection>
       </MainContent>
+      
       <Footer />
+      
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={handleLoginClose}
+        sessionExpired={sessionExpired}
+      />
     </GradientPageContainer>
   );
 };

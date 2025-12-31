@@ -5,7 +5,17 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
 
   if (!token) {
-    return <Navigate to="/" state={{ from: location }} replace />;
+    return (
+      <Navigate 
+        to="/" 
+        state={{ 
+          from: location,
+          showLogin: true,
+          sessionExpired: false
+        }} 
+        replace 
+      />
+    );
   }
 
   return children;

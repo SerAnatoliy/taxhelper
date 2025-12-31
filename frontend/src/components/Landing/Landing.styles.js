@@ -143,3 +143,27 @@ export const PricingListItem = styled.li`
 export const PricingButtonContainer = styled.div`
   margin-top: 2rem;
 `;
+
+export const SessionExpiredBanner = styled.div`
+  background: ${theme.colors.error};
+  color: ${theme.colors.white};
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3000;
+  animation: slideDown 0.3s ease;
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+`;
