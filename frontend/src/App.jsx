@@ -3,6 +3,7 @@ import Landing from './components/Landing';
 import Registration from './components/Register/Register';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard/Dashboard'; 
+import Expenses from './components/Expenses/Expenses';
 import NotFound from './components/NotFound';
 import ProtectedRoute from './components/Shared/ProtectedRoute';
 
@@ -26,6 +27,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/expenses"
+          element={
+            <ProtectedRoute>
+              <Expenses />
             </ProtectedRoute>
           }
         />

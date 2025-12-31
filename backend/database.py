@@ -26,6 +26,8 @@ class User(Base):
     hashed_password = Column(String(255))
     family_status = Column(String(20))  
     num_children = Column(Integer, default=0)
+    business_address = Column(String(300), nullable=True)
+    city = Column(String(100), nullable=True)
     region = Column(String(50), index=True)
     nie_dni = Column(String(20), nullable=True)  
     verified_kyc = Column(Boolean, default=False)  

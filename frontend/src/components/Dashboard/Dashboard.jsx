@@ -8,23 +8,11 @@ import {
   getAllDeadlines,
   createReminder 
 } from '../../services/api';
-import TaxHelperLogo from '../../assets/icons/logoTaxHelper.svg?react';
-import NotificationActive from '../../assets/icons/NotificationActive.svg?react';
-import NotificationInactive from '../../assets/icons/NotificationInactive.svg?react';
-import UserIconSvg from '../../assets/icons/UserIcon.svg?react';
 import ChartGrafic from '../../assets/icons/ChartGrafic.svg?react';
 
+import AppHeader from '../Shared/AppHeader';
 import {
   DashboardContainer,
-  DashboardHeader,
-  HeaderLeft,
-  LogoText,
-  HeaderRight,
-  NotificationIcon,
-  UserInfo,
-  UserName,
-  UserAvatar,
-  MenuButton,
   MainContent,
   DashboardGrid,
   WelcomeCard,
@@ -57,7 +45,6 @@ import {
 } from './Dashboard.styles';
 
 import AddReminderModal from '../AddReminderModal/AddReminderModal';
-import SideMenu from '../SideMenu/SideMenu';
 import AIChat from '../AIChat/AIChat';
 import GenerateInvoiceModal from '../GenerateInvoiceModal/GenerateInvoiceModal';
 
@@ -88,7 +75,6 @@ const Dashboard = () => {
   const [hasNotifications, setHasNotifications] = useState(true);
   const [allDeadlines, setAllDeadlines] = useState([]);
   const [showAddReminder, setShowAddReminder] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const [expenses, setExpenses] = useState(0);
   const [income, setIncome] = useState(0);
@@ -154,32 +140,10 @@ const Dashboard = () => {
 
   return (
     <DashboardContainer>
-      <DashboardHeader>
-        <HeaderLeft onClick={() => navigate('/dashboard')}>
-          <AnyIcon icon={TaxHelperLogo} size="40px" />
-          <LogoText>TaxHelper</LogoText>
-        </HeaderLeft>
-        <HeaderRight>
-          <NotificationIcon>
-            <AnyIcon 
-              icon={hasNotifications ? NotificationActive : NotificationInactive} 
-              size="24px" 
-            />
-          </NotificationIcon>
-          <UserInfo>
-            <UserName>{userData?.full_name || 'Loading...'}</UserName>
-            <UserAvatar>
-              <AnyIcon icon={UserIconSvg} size="24px" />
-            </UserAvatar>
-          </UserInfo>
-          <MenuButton onClick={() => setIsMenuOpen(true)}>
-            <span></span>
-            <span></span>
-            <span></span>
-          </MenuButton>
-        </HeaderRight>
-      </DashboardHeader>
-
+      <AppHeader 
+        userName={userData?.full_name} 
+        hasNotifications={hasNotifications}
+      />
       <MainContent>
         <DashboardGrid>
           <WelcomeCard>
@@ -276,10 +240,6 @@ const Dashboard = () => {
         onSubmit={handleGenerateInvoice}
       />
 
-      <SideMenu 
-        isOpen={isMenuOpen} 
-        onClose={() => setIsMenuOpen(false)} 
-      />
     </DashboardContainer>
   );
 };

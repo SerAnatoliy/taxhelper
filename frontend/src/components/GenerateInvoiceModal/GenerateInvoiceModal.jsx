@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
 import { FormInput } from '../Shared/FormComponents/FormComponents';
 import CloseIcon from '../../assets/icons/CloseIcon.svg?react';
-import { createInvoice, downloadInvoicePdf } from '../../services/api';
+import { createInvoice, downloadInvoicePdf, getProfile } from '../../services/api';
 
 import {
   ModalOverlay,
@@ -26,7 +26,6 @@ import {
   AddItemButton,
   TotalSection,
   TotalAmount,
-  TermsSection,
   ButtonRow,
   CancelButton,
   GenerateButton,
@@ -43,29 +42,51 @@ import {
   PreviewFooter,
 } from './GenerateInvoiceModal.styles';
 
-const initialFormData = {
-  businessName: '',
-  registrationNumber: '',
-  businessAddress: '',
-  cityRegion: '',
-  representative: '',
-  department: '',
-  clientName: '',
-  clientAddress: '',
-  clientContact: '',
-  referenceNumber: '',
-  invoiceNumber: '',
-  invoiceDate: new Date().toISOString().split('T')[0],
-  serviceDescription: '',
-  paymentTerms: '',
-  items: [{ id: 1, description: '', quantity: 1, unitPrice: 0 }],
-};
+const DEFAULT_PAYMENT_TERMS = 'Should be paid within 15 banking days once received.';
 
 const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState({
+    businessName: '',
+    registrationNumber: '',
+    businessAddress: '',
+    city: '',
+    region: '',
+    clientName: '',
+    clientAddress: '',
+    clientContact: '',
+    invoiceNumber: '',
+    invoiceDate: new Date().toISOString().split('T')[0],
+    serviceDescription: '',
+    items: [{ id: 1, description: '', quantity: 1, unitPrice: 0 }],
+  });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadUserProfile();
+    }
+  }, [isOpen]);
+
+  const loadUserProfile = async () => {
+    setIsLoadingProfile(true);
+    try {
+      const profile = await getProfile();
+      setFormData((prev) => ({
+        ...prev,
+        businessName: profile.full_name || '',
+        businessAddress: profile.business_address || '',
+        city: profile.city || '',
+        region: profile.region || '',
+      }));
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,7 +103,9 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
         item.id === id
           ? {
               ...item,
-              [field]: field === 'quantity' || field === 'unitPrice' ? parseFloat(value) || 0 : value,
+              [field]: field === 'quantity' || field === 'unitPrice' 
+                ? parseFloat(value) || 0 
+                : value,
             }
           : item
       ),
@@ -111,7 +134,12 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+    return new Intl.NumberFormat('es-ES', { 
+      style: 'currency', 
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   const validate = () => {
@@ -135,7 +163,13 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const createdInvoice = await createInvoice(formData);
+      const invoiceData = {
+        ...formData,
+        cityRegion: `${formData.city}${formData.city && formData.region ? ', ' : ''}${formData.region}`,
+        paymentTerms: DEFAULT_PAYMENT_TERMS,
+      };
+      
+      const createdInvoice = await createInvoice(invoiceData);
       await downloadInvoicePdf(createdInvoice.id);
       if (onSubmit) await onSubmit(createdInvoice);
       handleClose();
@@ -150,7 +184,21 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
   };
 
   const handleClose = () => {
-    setFormData(initialFormData);
+    setFormData({
+      businessName: '',
+      registrationNumber: '',
+      businessAddress: '',
+      city: '',
+      region: '',
+      clientName: '',
+      clientAddress: '',
+      clientContact: '',
+      referenceNumber: '',
+      invoiceNumber: '',
+      invoiceDate: new Date().toISOString().split('T')[0],
+      serviceDescription: '',
+      items: [{ id: 1, description: '', quantity: 1, unitPrice: 0 }],
+    });
     setErrors({});
     setShowPreview(false);
     onClose();
@@ -158,7 +206,6 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleBackToEdit = () => setShowPreview(false);
 
-  // Common input props for modal styling
   const inputProps = { height: '48px', borderRadius: '12px', bg: '#f5f5f5' };
 
   return (
@@ -180,19 +227,20 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                   <FormInput
                     id="businessName"
                     name="businessName"
-                    placeholder="Your Company Name"
+                    placeholder="Your Full Name"
                     value={formData.businessName}
                     onChange={handleChange}
                     error={errors.businessName}
+                    disabled={isLoadingProfile}
                     {...inputProps}
                   />
                 </FormGroup>
                 <FormGroup>
-                  <Label htmlFor="registrationNumber">Registration Number</Label>
+                  <Label htmlFor="registrationNumber">NIF/CIF Number</Label>
                   <FormInput
                     id="registrationNumber"
                     name="registrationNumber"
-                    placeholder="REG-123456"
+                    placeholder="12345678A"
                     value={formData.registrationNumber}
                     onChange={handleChange}
                     {...inputProps}
@@ -206,40 +254,32 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder="123 Business Street"
                     value={formData.businessAddress}
                     onChange={handleChange}
-                    {...inputProps}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label htmlFor="cityRegion">City, Region</Label>
-                  <FormInput
-                    id="cityRegion"
-                    name="cityRegion"
-                    placeholder="Madrid, Spain"
-                    value={formData.cityRegion}
-                    onChange={handleChange}
+                    disabled={isLoadingProfile}
                     {...inputProps}
                   />
                 </FormGroup>
                 <FormRow>
                   <FormGroup>
-                    <Label htmlFor="representative">Representative</Label>
+                    <Label htmlFor="city">City</Label>
                     <FormInput
-                      id="representative"
-                      name="representative"
-                      placeholder="John Doe"
-                      value={formData.representative}
+                      id="city"
+                      name="city"
+                      placeholder="Madrid"
+                      value={formData.city}
                       onChange={handleChange}
+                      disabled={isLoadingProfile}
                       {...inputProps}
                     />
                   </FormGroup>
                   <FormGroup>
-                    <Label htmlFor="department">Department</Label>
+                    <Label htmlFor="region">Region</Label>
                     <FormInput
-                      id="department"
-                      name="department"
-                      placeholder="Sales"
-                      value={formData.department}
+                      id="region"
+                      name="region"
+                      placeholder="Madrid"
+                      value={formData.region}
                       onChange={handleChange}
+                      disabled={isLoadingProfile}
                       {...inputProps}
                     />
                   </FormGroup>
@@ -308,17 +348,6 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                     />
                   </FormGroup>
                 </FormRow>
-                <FormGroup>
-                  <Label htmlFor="referenceNumber">Reference Number</Label>
-                  <FormInput
-                    id="referenceNumber"
-                    name="referenceNumber"
-                    placeholder="REF-001"
-                    value={formData.referenceNumber}
-                    onChange={handleChange}
-                    {...inputProps}
-                  />
-                </FormGroup>
               </FormSection>
 
               <ItemsSection>
@@ -347,6 +376,7 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                           <TableInput
                             type="number"
                             min="1"
+                            step="0.01"
                             value={item.quantity}
                             onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
                           />
@@ -377,31 +407,19 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                 </TotalSection>
               </ItemsSection>
 
-              <TermsSection>
-                <SectionTitle>Terms & Conditions</SectionTitle>
-                <FormRow>
-                  <FormGroup>
-                    <Label htmlFor="serviceDescription">Service Description</Label>
-                    <TextArea
-                      id="serviceDescription"
-                      name="serviceDescription"
-                      placeholder="Brief description of services provided"
-                      value={formData.serviceDescription}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <Label htmlFor="paymentTerms">Payment Terms</Label>
-                    <TextArea
-                      id="paymentTerms"
-                      name="paymentTerms"
-                      placeholder="Net 30 days, Bank transfer preferred"
-                      value={formData.paymentTerms}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                </FormRow>
-              </TermsSection>
+              <FormSection>
+                <SectionTitle>Service Description</SectionTitle>
+                <FormGroup>
+                  <Label htmlFor="serviceDescription">Description (Optional)</Label>
+                  <TextArea
+                    id="serviceDescription"
+                    name="serviceDescription"
+                    placeholder="Brief description of services provided"
+                    value={formData.serviceDescription}
+                    onChange={handleChange}
+                  />
+                </FormGroup>
+              </FormSection>
             </FormGrid>
 
             {errors.submit && <ErrorText>{errors.submit}</ErrorText>}
@@ -424,19 +442,16 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                     <h1>{formData.businessName || 'Business Name'}</h1>
                     <p>{formData.registrationNumber}</p>
                     <p>{formData.businessAddress}</p>
-                    <p>{formData.cityRegion}</p>
-                    {formData.representative && (
-                      <p>
-                        Rep: {formData.representative}
-                        {formData.department && ` | ${formData.department}`}
-                      </p>
-                    )}
+                    <p>
+                      {formData.city}
+                      {formData.city && formData.region && ', '}
+                      {formData.region}
+                    </p>
                   </PreviewBusiness>
                   <PreviewMeta>
                     <h2>INVOICE</h2>
                     <p>#{formData.invoiceNumber}</p>
                     <p>Date: {formData.invoiceDate}</p>
-                    {formData.referenceNumber && <p>Ref: {formData.referenceNumber}</p>}
                   </PreviewMeta>
                 </PreviewHeader>
 
@@ -462,7 +477,7 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                         <td>{item.description || '-'}</td>
                         <td style={{ textAlign: 'center' }}>{item.quantity}</td>
                         <td style={{ textAlign: 'right' }}>{formatCurrency(item.unitPrice)}</td>
-                        <td>{formatCurrency(item.quantity * item.unitPrice)}</td>
+                        <td style={{ textAlign: 'right' }}>{formatCurrency(item.quantity * item.unitPrice)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -482,11 +497,9 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                       <strong>Service:</strong> {formData.serviceDescription}
                     </p>
                   )}
-                  {formData.paymentTerms && (
-                    <p>
-                      <strong>Payment Terms:</strong> {formData.paymentTerms}
-                    </p>
-                  )}
+                  <p>
+                    <strong>Payment Terms:</strong> {DEFAULT_PAYMENT_TERMS}
+                  </p>
                   <p>Please reference invoice #{formData.invoiceNumber} with your payment.</p>
                 </PreviewFooter>
               </PreviewInvoice>

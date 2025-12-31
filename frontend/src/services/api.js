@@ -272,3 +272,100 @@ export const deleteInvoice = async (invoiceId) => {
   const response = await api.delete(`/invoices/${invoiceId}`);
   return response.data;
 };
+
+/**
+ * Upload expense files (invoices/receipts) for parsing
+ * @param {File[]} files - Array of files to upload
+ * @returns {Promise<Array>} Parsed expense results
+ */
+export const uploadExpenses = async (files) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('files', file);
+  });
+
+  const response = await api.post('/expenses/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+/**
+ * Get all expenses for current user
+ * @param {Object} filters - Optional filters { dateFrom, dateTo, type }
+ * @returns {Promise<Array>} List of expenses
+ */
+export const getExpenses = async (filters = {}) => {
+  const params = {};
+  if (filters.dateFrom) params.date_from = filters.dateFrom;
+  if (filters.dateTo) params.date_to = filters.dateTo;
+  if (filters.type) params.type = filters.type;
+
+  try {
+    const response = await api.get('/expenses/', { params });
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      console.warn('Expenses endpoint not found. Please update backend/expenses.py');
+      return [];
+    }
+    throw error;
+  }
+};
+
+/**
+ * Get a single expense by ID
+ * @param {number} expenseId - Expense ID
+ * @returns {Promise<Object>} Expense details
+ */
+export const getExpense = async (expenseId) => {
+  const response = await api.get(`/expenses/${expenseId}`);
+  return response.data;
+};
+
+/**
+ * Create a new expense manually
+ * @param {Object} expenseData - Expense data
+ * @returns {Promise<Object>} Created expense
+ */
+export const createExpense = async (expenseData) => {
+  const response = await api.post('/expenses/', expenseData);
+  return response.data;
+};
+
+/**
+ * Update an existing expense
+ * @param {number} expenseId - Expense ID
+ * @param {Object} expenseData - Updated expense data
+ * @returns {Promise<Object>} Updated expense
+ */
+export const updateExpense = async (expenseId, expenseData) => {
+  const response = await api.patch(`/expenses/${expenseId}`, expenseData);
+  return response.data;
+};
+
+/**
+ * Delete an expense
+ * @param {number} expenseId - Expense ID
+ * @returns {Promise<Object>} Delete confirmation
+ */
+export const deleteExpense = async (expenseId) => {
+  const response = await api.delete(`/expenses/${expenseId}`);
+  return response.data;
+};
+
+/**
+ * Get tax advice for an expense
+ * @param {string} fullText - Extracted invoice text
+ * @param {string} userRegion - User's region
+ * @param {string} userFamilyStatus - User's family status
+ * @returns {Promise<Object>} Tax advice response
+ */
+export const getExpenseAdvice = async (fullText, userRegion, userFamilyStatus) => {
+  const response = await api.post('/expenses/advice', {
+    full_text: fullText,
+    user_region: userRegion,
+    user_family_status: userFamilyStatus,
+  });
+  return response.data;
+};

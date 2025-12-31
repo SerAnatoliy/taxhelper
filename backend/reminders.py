@@ -3,13 +3,13 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, date
+from dateutil.relativedelta import relativedelta 
 from enum import Enum
 
 from database import get_db, User, Reminder
 from auth import get_current_user
 
 router = APIRouter(prefix="/reminders", tags=["reminders"])
-
 
 
 class SpanishTaxDeadlines:
@@ -49,7 +49,7 @@ class SpanishTaxDeadlines:
             all_deadlines.extend(SpanishTaxDeadlines.get_quarterly_deadlines(year))
             all_deadlines.extend(SpanishTaxDeadlines.get_annual_deadlines(year))
         
-        end_date = date(from_date.year, from_date.month + months_ahead, from_date.day) if from_date.month + months_ahead <= 12 else date(from_date.year + 1, (from_date.month + months_ahead) % 12, from_date.day)
+        end_date = from_date + relativedelta(months=+months_ahead)
         
         upcoming = [
             d for d in all_deadlines 

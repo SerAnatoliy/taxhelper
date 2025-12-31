@@ -53,6 +53,8 @@ class UserUpdate(BaseModel):
     family_status: str | None = None
     num_children: int | None = None
     region: str | None = None
+    city: str | None = None  
+    business_address: str | None = None 
 
     @validator('family_status')
     def validate_family_status(cls, v):
@@ -152,10 +154,12 @@ def get_profile(current_user: User = Depends(get_current_user)):
         "family_status": current_user.family_status,
         "num_children": current_user.num_children,
         "region": current_user.region,
+        "city": current_user.city,  
+        "business_address": current_user.business_address,  
         "created_at": current_user.created_at,
         "stripe_customer_id": current_user.stripe_customer_id  
     }
-
+    
 @router.post("/kyc", response_model=dict)
 async def kyc_verify(
     dni_number: str = Form(...),
@@ -231,7 +235,7 @@ async def kyc_verify(
 
         media_url = f"{base_url}/sessions/{session_id}/media"
         ts_iso = datetime.utcnow().isoformat(timespec='milliseconds') + 'Z'  
-        mime_front_type = dni_front_file.content_type  # e.g., "image/jpeg"
+        mime_front_type = dni_front_file.content_type  
         base64_content = base64.b64encode(front_content).decode('utf-8')
         content_front_uri = f"data:{mime_front_type};base64,{base64_content}"  
         image_front_data = {
@@ -268,7 +272,7 @@ async def kyc_verify(
         if front_response.status_code != 200:
             raise HTTPException(status_code=500, detail=f"Front upload failed: {front_response.text}")
         
-        mime_back_type = dni_back_file.content_type  # e.g., "image/jpeg"
+        mime_back_type = dni_back_file.content_type 
         base64_content = base64.b64encode(back_content).decode('utf-8')
         content_back_uri = f"data:{mime_back_type};base64,{base64_content}"  
         image_back_data = {
