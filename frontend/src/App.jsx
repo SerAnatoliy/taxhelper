@@ -4,6 +4,7 @@ import Registration from './components/Register/Register';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard/Dashboard'; 
 import Expenses from './components/Expenses/Expenses';
+import Income from './components/Income/Income';
 import NotFound from './components/NotFound';
 import ProtectedRoute from './components/Shared/ProtectedRoute';
 
@@ -27,6 +28,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/income"
+          element={
+            <ProtectedRoute>
+              <Income />
             </ProtectedRoute>
           }
         />

@@ -37,6 +37,50 @@ export const DashboardGrid = styled.div`
   }
 `;
 
+export const BottomRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (min-width: 1024px) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+`;
+
+export const LeftColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+`;
+
+export const RightColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 400px;
+  max-height: 500px;
+
+  @media (min-width: 1024px) {
+    max-height: 450px;
+  }
+`;
+
 export const WelcomeCard = styled.div`
   background: rgba(231, 248, 255, 0.8);
   border-radius: 16px;
@@ -118,38 +162,6 @@ export const QuickStatsChart = styled.div`
   }
 `;
 
-export const BottomRow = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  @media (min-width: 1024px) {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-`;
-
-export const LeftColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  @media (min-width: 768px) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  @media (min-width: 1024px) {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-`;
-
 export const DeadlinesCard = styled.div`
   background: ${theme.colors.white};
   border-radius: 16px;
@@ -161,6 +173,20 @@ export const CardTitle = styled.h3`
   font-weight: 600;
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+`;
+
+export const PeriodLabel = styled.span`
+  font-size: 12px;
+  font-weight: 500;
+  color: ${theme.colors.logoBlue || '#0162BB'};
+  background: rgba(1, 98, 187, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
 `;
 
 export const DeadlinesList = styled.div`
@@ -184,6 +210,62 @@ export const DeadlineName = styled.span`
 export const DeadlineDate = styled.span`
   color: ${theme.colors.mainFont};
   opacity: 0.8;
+`;
+
+export const DeadlineInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+`;
+
+export const DeadlineActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+`;
+
+export const ActionButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+
+  &:hover {
+    background-color: ${({ $variant }) => 
+      $variant === 'complete' ? 'rgba(76, 175, 80, 0.15)' : 
+      $variant === 'delete' ? 'rgba(244, 67, 54, 0.15)' : 
+      'rgba(0, 0, 0, 0.05)'};
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: ${({ $variant }) => 
+      $variant === 'complete' ? '#4CAF50' : 
+      $variant === 'delete' ? '#f44336' : 
+      theme.colors.mainFont};
+  }
+`;
+
+export const DeadlineType = styled.span`
+  font-size: 10px;
+  text-transform: uppercase;
+  color: ${({ $type }) => 
+    $type === 'tax' ? theme.colors.logoBlue || '#0162BB' : 
+    theme.colors.mainFont};
+  opacity: 0.7;
+  letter-spacing: 0.5px;
 `;
 
 export const AddReminderButton = styled.button`
@@ -254,18 +336,6 @@ export const ExpensesStat = styled.div`
   justify-content: space-between;
   font-size: 14px;
   color: ${theme.colors.mainFont};
-`;
-
-export const RightColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  min-height: 400px;
-  max-height: 500px;
-
-  @media (min-width: 1024px) {
-    max-height: 450px;
-  }
 `;
 
 export const GenerateInvoiceButton = styled.button`

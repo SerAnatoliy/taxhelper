@@ -10,6 +10,7 @@ from veriff import router as veriff_router
 from reminders import router as reminders_router
 from chat import router as chat_router
 from invoices import router as invoice_router
+from dashboard import router as dashboard_router
 
 app = FastAPI(title="TaxHelper API", version="0.1.0")
 load_dotenv()
@@ -32,6 +33,7 @@ app.include_router(veriff_router)
 app.include_router(reminders_router)
 app.include_router(chat_router)
 app.include_router(invoice_router)
+app.include_router(dashboard_router)
 
 @app.get("/")
 async def root():

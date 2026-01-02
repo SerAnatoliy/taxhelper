@@ -219,9 +219,9 @@ const Expenses = () => {
       <MainContent>
         <ContentGrid>
           <WelcomeCard>
-            <WelcomeTitle>Welcome back, {user.firstName || '[user_name]'}!</WelcomeTitle>
+            <WelcomeTitle>Welcome back, {user.firstName || 'User'}!</WelcomeTitle>
             <WelcomeSubtitle>
-              Your next IVA deadline: {nextDeadline.date} ({nextDeadline.daysLeft} left)
+              Track and manage your business expenses
             </WelcomeSubtitle>
             <WelcomeActions>
               <ActionBtn $primary onClick={() => setShowExpenseModal(true)}>
@@ -245,9 +245,11 @@ const Expenses = () => {
                 <AnyIcon icon={UploadIcon} size="64px" />
               </UploadIconWrapper>
               <UploadText>
-                Drop your invoices/receipts here or click to browse
+                Drop your expense receipts here
               </UploadText>
-              <UploadSubtext>(PDF/JPG max 10MB)</UploadSubtext>
+              <UploadSubtext>
+                Invoices you received from suppliers (PDF/JPG max 10MB)
+              </UploadSubtext>
             </UploadDropzone>
             
             <input
@@ -321,7 +323,7 @@ const Expenses = () => {
             {isLoading ? (
               <LoadingSpinner>Loading expenses...</LoadingSpinner>
             ) : filteredExpenses.length === 0 ? (
-              <EmptyState>No expenses found. Upload your first expense report!</EmptyState>
+              <EmptyState>No expenses found. Upload your first expense or add one manually!</EmptyState>
             ) : (
               <ExpensesTable>
                 <TableHead>

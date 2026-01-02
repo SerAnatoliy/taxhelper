@@ -269,6 +269,19 @@ export const deleteInvoice = async (invoiceId) => {
   return response.data;
 };
 
+export const uploadIncome = async (files) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('files', file);
+  });
+
+  const response = await api.post('/invoices/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+
 // ============== EXPENSES API ==============
 
 export const uploadExpenses = async (files) => {
@@ -329,5 +342,18 @@ export const getExpenseAdvice = async (fullText, userRegion, userFamilyStatus) =
   });
   return response.data;
 };
+
+// ============== DASHBOARD API ==============
+
+export const getPeriodFinancials = async () => {
+  const response = await api.get('/dashboard/period-financials');
+  return response.data;
+};
+
+export const getCurrentTaxPeriod = async () => {
+  const response = await api.get('/dashboard/current-period');
+  return response.data;
+};
+
 
 export default api;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
 import { FormInput } from '../Shared/FormComponents/FormComponents';
 import CloseIcon from '../../assets/icons/CloseIcon.svg?react';
-import { createInvoice, downloadInvoicePdf, getProfile } from '../../services/api';
+import { createInvoice, getProfile } from '../../services/api';
 
 import {
   ModalOverlay,
@@ -63,6 +63,18 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -133,45 +145,53 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
     return formData.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-ES', { 
-      style: 'currency', 
-      currency: 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
-
   const validate = () => {
     const newErrors = {};
     if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
     if (!formData.clientName.trim()) newErrors.clientName = 'Client name is required';
     if (!formData.invoiceNumber.trim()) newErrors.invoiceNumber = 'Invoice number is required';
     if (!formData.invoiceDate) newErrors.invoiceDate = 'Invoice date is required';
-    if (formData.items.every((item) => !item.description.trim())) {
-      newErrors.items = 'At least one line item is required';
-    }
+    
+    const hasValidItems = formData.items.some(
+      (item) => item.description.trim() && item.quantity > 0 && item.unitPrice > 0
+    );
+    if (!hasValidItems) newErrors.items = 'At least one valid item is required';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleGenerate = () => {
-    if (!validate()) return;
-    setShowPreview(true);
+  const handlePreview = (e) => {
+    e.preventDefault();
+    if (validate()) {
+      setShowPreview(true);
+    }
   };
 
   const handleSubmit = async () => {
+    if (!validate()) return;
+
     setIsSubmitting(true);
     try {
       const invoiceData = {
-        ...formData,
+        businessName: formData.businessName,
+        registrationNumber: formData.registrationNumber,
+        businessAddress: formData.businessAddress,
         cityRegion: `${formData.city}${formData.city && formData.region ? ', ' : ''}${formData.region}`,
+        clientName: formData.clientName,
+        clientAddress: formData.clientAddress,
+        clientContact: formData.clientContact,
+        invoiceNumber: formData.invoiceNumber,
+        invoiceDate: formData.invoiceDate,
+        serviceDescription: formData.serviceDescription,
+        items: formData.items.filter(item => item.description.trim()),
         paymentTerms: DEFAULT_PAYMENT_TERMS,
       };
       
       const createdInvoice = await createInvoice(invoiceData);
-      await downloadInvoicePdf(createdInvoice.id);
+      
       if (onSubmit) await onSubmit(createdInvoice);
+      
       handleClose();
     } catch (error) {
       console.error('Failed to generate invoice:', error);
@@ -193,7 +213,6 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
       clientName: '',
       clientAddress: '',
       clientContact: '',
-      referenceNumber: '',
       invoiceNumber: '',
       invoiceDate: new Date().toISOString().split('T')[0],
       serviceDescription: '',
@@ -208,6 +227,8 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
 
   const inputProps = { height: '48px', borderRadius: '12px', bg: '#f5f5f5' };
 
+  if (!isOpen) return null;
+
   return (
     <ModalOverlay $isOpen={isOpen} onClick={handleClose}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
@@ -218,68 +239,59 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
         <ModalTitle>{showPreview ? 'Invoice Preview' : 'Generate Invoice'}</ModalTitle>
 
         {!showPreview ? (
-          <>
+          <form onSubmit={handlePreview}>
             <FormGrid>
               <FormSection>
-                <SectionTitle>Business Details</SectionTitle>
+                <SectionTitle>Your Business</SectionTitle>
                 <FormGroup>
-                  <Label htmlFor="businessName">Business Name *</Label>
+                  <Label>Business Name *</Label>
                   <FormInput
-                    id="businessName"
                     name="businessName"
-                    placeholder="Your Full Name"
                     value={formData.businessName}
                     onChange={handleChange}
-                    error={errors.businessName}
-                    disabled={isLoadingProfile}
+                    placeholder="Your business name"
                     {...inputProps}
                   />
+                  {errors.businessName && <ErrorText>{errors.businessName}</ErrorText>}
                 </FormGroup>
                 <FormGroup>
-                  <Label htmlFor="registrationNumber">NIF/CIF Number</Label>
+                  <Label>Registration Number</Label>
                   <FormInput
-                    id="registrationNumber"
                     name="registrationNumber"
-                    placeholder="12345678A"
                     value={formData.registrationNumber}
                     onChange={handleChange}
+                    placeholder="NIF/CIF"
                     {...inputProps}
                   />
                 </FormGroup>
                 <FormGroup>
-                  <Label htmlFor="businessAddress">Business Address</Label>
+                  <Label>Address</Label>
                   <FormInput
-                    id="businessAddress"
                     name="businessAddress"
-                    placeholder="123 Business Street"
                     value={formData.businessAddress}
                     onChange={handleChange}
-                    disabled={isLoadingProfile}
+                    placeholder="Street address"
                     {...inputProps}
                   />
                 </FormGroup>
                 <FormRow>
                   <FormGroup>
-                    <Label htmlFor="city">City</Label>
+                    <Label>City</Label>
                     <FormInput
-                      id="city"
                       name="city"
-                      placeholder="Madrid"
                       value={formData.city}
                       onChange={handleChange}
-                      disabled={isLoadingProfile}
+                      placeholder="City"
                       {...inputProps}
                     />
                   </FormGroup>
                   <FormGroup>
-                    <Label htmlFor="region">Region</Label>
+                    <Label>Region</Label>
                     <FormInput
-                      id="region"
                       name="region"
-                      placeholder="Madrid"
                       value={formData.region}
                       onChange={handleChange}
-                      disabled={isLoadingProfile}
+                      placeholder="Region"
                       {...inputProps}
                     />
                   </FormGroup>
@@ -287,79 +299,74 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
               </FormSection>
 
               <FormSection>
-                <SectionTitle>Client & Invoice Details</SectionTitle>
+                <SectionTitle>Client Details</SectionTitle>
                 <FormGroup>
-                  <Label htmlFor="clientName">Client Name *</Label>
+                  <Label>Client Name *</Label>
                   <FormInput
-                    id="clientName"
                     name="clientName"
-                    placeholder="Client Company Ltd."
                     value={formData.clientName}
                     onChange={handleChange}
-                    error={errors.clientName}
+                    placeholder="Client or company name"
                     {...inputProps}
                   />
+                  {errors.clientName && <ErrorText>{errors.clientName}</ErrorText>}
                 </FormGroup>
                 <FormGroup>
-                  <Label htmlFor="clientAddress">Client Address</Label>
+                  <Label>Client Address</Label>
                   <FormInput
-                    id="clientAddress"
                     name="clientAddress"
-                    placeholder="456 Client Avenue"
                     value={formData.clientAddress}
                     onChange={handleChange}
+                    placeholder="Client address"
                     {...inputProps}
                   />
                 </FormGroup>
                 <FormGroup>
-                  <Label htmlFor="clientContact">Contact Information</Label>
+                  <Label>Contact Info</Label>
                   <FormInput
-                    id="clientContact"
                     name="clientContact"
-                    placeholder="client@email.com"
                     value={formData.clientContact}
                     onChange={handleChange}
+                    placeholder="Email or phone"
                     {...inputProps}
                   />
                 </FormGroup>
                 <FormRow>
                   <FormGroup>
-                    <Label htmlFor="invoiceNumber">Invoice Number *</Label>
+                    <Label>Invoice Number *</Label>
                     <FormInput
-                      id="invoiceNumber"
                       name="invoiceNumber"
-                      placeholder="2001321"
                       value={formData.invoiceNumber}
                       onChange={handleChange}
-                      error={errors.invoiceNumber}
+                      placeholder="INV-001"
                       {...inputProps}
                     />
+                    {errors.invoiceNumber && <ErrorText>{errors.invoiceNumber}</ErrorText>}
                   </FormGroup>
                   <FormGroup>
-                    <Label htmlFor="invoiceDate">Invoice Date *</Label>
+                    <Label>Invoice Date *</Label>
                     <FormInput
-                      id="invoiceDate"
-                      name="invoiceDate"
                       type="date"
+                      name="invoiceDate"
                       value={formData.invoiceDate}
                       onChange={handleChange}
-                      error={errors.invoiceDate}
                       {...inputProps}
                     />
+                    {errors.invoiceDate && <ErrorText>{errors.invoiceDate}</ErrorText>}
                   </FormGroup>
                 </FormRow>
               </FormSection>
 
               <ItemsSection>
-                <SectionTitle>Line Items</SectionTitle>
+                <SectionTitle>Invoice Items</SectionTitle>
                 <ItemsTable>
                   <thead>
                     <tr>
                       <TableHeader>Description</TableHeader>
-                      <TableHeader style={{ width: '100px' }}>Quantity</TableHeader>
-                      <TableHeader style={{ width: '120px' }}>Unit Price (€)</TableHeader>
-                      <TableHeader style={{ width: '120px', textAlign: 'right' }}>Amount</TableHeader>
-                      <TableHeader style={{ width: '80px' }}></TableHeader>
+                      <TableHeader style={{ width: '100px' }}>Qty</TableHeader>
+                      <TableHeader style={{ width: '120px' }}>Unit Price</TableHeader>
+                      <TableHeader style={{ width: '100px' }}>Amount</TableHeader>
+                      <TableHeader style={{ width: '60px' }}></TableHeader>
                     </tr>
                   </thead>
                   <tbody>
@@ -369,14 +376,13 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                           <TableInput
                             value={item.description}
                             onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                            placeholder="Product/Service name"
+                            placeholder="Service or product"
                           />
                         </TableCell>
                         <TableCell>
                           <TableInput
                             type="number"
                             min="1"
-                            step="0.01"
                             value={item.quantity}
                             onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
                           />
@@ -390,127 +396,125 @@ const GenerateInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                             onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)}
                           />
                         </TableCell>
-                        <AmountCell>{formatCurrency(item.quantity * item.unitPrice)}</AmountCell>
+                        <AmountCell>€{(item.quantity * item.unitPrice).toFixed(2)}</AmountCell>
                         <TableCell>
-                          <RemoveItemButton onClick={() => removeItem(item.id)}>Remove</RemoveItemButton>
+                          {formData.items.length > 1 && (
+                            <RemoveItemButton type="button" onClick={() => removeItem(item.id)}>
+                              ✕
+                            </RemoveItemButton>
+                          )}
                         </TableCell>
                       </tr>
                     ))}
                   </tbody>
                 </ItemsTable>
                 {errors.items && <ErrorText>{errors.items}</ErrorText>}
-                <AddItemButton onClick={addItem}>+ Add Item</AddItemButton>
+                <AddItemButton type="button" onClick={addItem}>
+                  + Add Item
+                </AddItemButton>
                 <TotalSection>
                   <TotalAmount>
-                    Total: <span>{formatCurrency(calculateTotal())}</span>
+                    Total: <span>€{calculateTotal().toFixed(2)}</span>
                   </TotalAmount>
                 </TotalSection>
               </ItemsSection>
 
-              <FormSection>
-                <SectionTitle>Service Description</SectionTitle>
+              <FormSection style={{ gridColumn: '1 / -1' }}>
+                <SectionTitle>Additional Details</SectionTitle>
                 <FormGroup>
-                  <Label htmlFor="serviceDescription">Description (Optional)</Label>
+                  <Label>Service Description</Label>
                   <TextArea
-                    id="serviceDescription"
                     name="serviceDescription"
-                    placeholder="Brief description of services provided"
                     value={formData.serviceDescription}
                     onChange={handleChange}
+                    placeholder="Brief description of services provided..."
                   />
                 </FormGroup>
               </FormSection>
             </FormGrid>
 
-            {errors.submit && <ErrorText>{errors.submit}</ErrorText>}
+            {errors.submit && <ErrorText style={{ textAlign: 'center', marginTop: '1rem' }}>{errors.submit}</ErrorText>}
 
             <ButtonRow>
               <CancelButton type="button" onClick={handleClose}>
                 Cancel
               </CancelButton>
-              <GenerateButton type="button" onClick={handleGenerate}>
+              <GenerateButton type="submit">
                 Preview Invoice
               </GenerateButton>
             </ButtonRow>
-          </>
+          </form>
         ) : (
           <>
             <PreviewContainer>
               <PreviewInvoice>
                 <PreviewHeader>
                   <PreviewBusiness>
-                    <h1>{formData.businessName || 'Business Name'}</h1>
-                    <p>{formData.registrationNumber}</p>
-                    <p>{formData.businessAddress}</p>
-                    <p>
-                      {formData.city}
-                      {formData.city && formData.region && ', '}
-                      {formData.region}
-                    </p>
+                    <h1>{formData.businessName}</h1>
+                    {formData.registrationNumber && <p>{formData.registrationNumber}</p>}
+                    {formData.businessAddress && <p>{formData.businessAddress}</p>}
+                    {(formData.city || formData.region) && (
+                      <p>{formData.city}{formData.city && formData.region ? ', ' : ''}{formData.region}</p>
+                    )}
                   </PreviewBusiness>
                   <PreviewMeta>
                     <h2>INVOICE</h2>
-                    <p>#{formData.invoiceNumber}</p>
-                    <p>Date: {formData.invoiceDate}</p>
+                    <p><strong>#{formData.invoiceNumber}</strong></p>
+                    <p>Date: {new Date(formData.invoiceDate).toLocaleDateString('es-ES')}</p>
                   </PreviewMeta>
                 </PreviewHeader>
 
                 <PreviewClient>
-                  <h3>Bill To</h3>
-                  <p>{formData.clientName || 'Client Name'}</p>
-                  <p>{formData.clientAddress}</p>
-                  <p>{formData.clientContact}</p>
+                  <h3>Bill To:</h3>
+                  <p><strong>{formData.clientName}</strong></p>
+                  {formData.clientAddress && <p>{formData.clientAddress}</p>}
+                  {formData.clientContact && <p>{formData.clientContact}</p>}
                 </PreviewClient>
 
                 <PreviewTable>
                   <thead>
                     <tr>
                       <th>Description</th>
-                      <th style={{ textAlign: 'center' }}>Qty</th>
-                      <th style={{ textAlign: 'right' }}>Unit Price</th>
-                      <th style={{ textAlign: 'right' }}>Amount</th>
+                      <th>Qty</th>
+                      <th>Unit Price</th>
+                      <th>Amount</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {formData.items.map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.description || '-'}</td>
-                        <td style={{ textAlign: 'center' }}>{item.quantity}</td>
-                        <td style={{ textAlign: 'right' }}>{formatCurrency(item.unitPrice)}</td>
-                        <td style={{ textAlign: 'right' }}>{formatCurrency(item.quantity * item.unitPrice)}</td>
-                      </tr>
-                    ))}
+                    {formData.items
+                      .filter(item => item.description.trim())
+                      .map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.description}</td>
+                          <td>{item.quantity}</td>
+                          <td>€{item.unitPrice.toFixed(2)}</td>
+                          <td>€{(item.quantity * item.unitPrice).toFixed(2)}</td>
+                        </tr>
+                      ))}
                   </tbody>
                 </PreviewTable>
 
                 <PreviewTotalRow>
                   <PreviewTotalBox>
-                    <p>
-                      Total: <span>{formatCurrency(calculateTotal())}</span>
-                    </p>
+                    <span>Total Amount</span>
+                    <strong>€{calculateTotal().toFixed(2)}</strong>
                   </PreviewTotalBox>
                 </PreviewTotalRow>
 
                 <PreviewFooter>
-                  {formData.serviceDescription && (
-                    <p>
-                      <strong>Service:</strong> {formData.serviceDescription}
-                    </p>
-                  )}
-                  <p>
-                    <strong>Payment Terms:</strong> {DEFAULT_PAYMENT_TERMS}
-                  </p>
-                  <p>Please reference invoice #{formData.invoiceNumber} with your payment.</p>
+                  <p>{DEFAULT_PAYMENT_TERMS}</p>
                 </PreviewFooter>
               </PreviewInvoice>
             </PreviewContainer>
 
+            {errors.submit && <ErrorText style={{ textAlign: 'center', marginTop: '1rem' }}>{errors.submit}</ErrorText>}
+
             <ButtonRow>
               <CancelButton type="button" onClick={handleBackToEdit}>
-                ← Back to Edit
+                Back to Edit
               </CancelButton>
-              <GenerateButton type="button" onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting ? 'Generating...' : 'Download PDF'}
+              <GenerateButton onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? 'Creating...' : 'Generate Invoice'}
               </GenerateButton>
             </ButtonRow>
           </>

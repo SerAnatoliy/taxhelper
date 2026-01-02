@@ -110,6 +110,7 @@ class Reminder(Base):
     reminder_type = Column(String(50), default="custom")  
     modelo = Column(String(20), nullable=True)  
     is_completed = Column(Boolean, default=False)
+    is_removed = Column(Boolean, default=False)
     notify_days_before = Column(Integer, default=7)  
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -36,6 +36,9 @@ const SideMenu = ({ isOpen, onClose }) => {
           <MenuLink to="/dashboard" onClick={handleLinkClick}>
             Dashboard
           </MenuLink>
+          <MenuLink to="/income" onClick={handleLinkClick}>
+            Income
+          </MenuLink>
           <MenuLink to="/expenses" onClick={handleLinkClick}>
             Expenses
           </MenuLink>

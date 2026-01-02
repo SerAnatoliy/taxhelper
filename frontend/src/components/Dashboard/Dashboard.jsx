@@ -4,11 +4,15 @@ import Footer from '../Footer/Footer';
 import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
 import { 
   getProfile, 
-  getBankTransactions, 
   getAllDeadlines,
-  createReminder 
+  createReminder,
+  completeReminder,
+  deleteReminder,
+  getPeriodFinancials
 } from '../../services/api';
 import ChartGrafic from '../../assets/icons/ChartGrafic.svg?react';
+import CheckIcon from '../../assets/icons/CheckIcon.svg?react';
+import DeleteIcon from '../../assets/icons/Delete.svg?react';
 
 import AppHeader from '../Shared/AppHeader';
 import {
@@ -31,6 +35,10 @@ import {
   DeadlineItem,
   DeadlineName,
   DeadlineDate,
+  DeadlineInfo,
+  DeadlineActions,
+  ActionButton,
+  DeadlineType,
   AddReminderButton,
   ExpensesSummaryCard,
   ExpensesContent,
@@ -42,6 +50,7 @@ import {
   ExpensesStat,
   RightColumn,
   GenerateInvoiceButton,
+  PeriodLabel,
 } from './Dashboard.styles';
 
 import AddReminderModal from '../AddReminderModal/AddReminderModal';
@@ -69,18 +78,94 @@ const DonutChart = ({ expenses = 0, income = 0 }) => {
   );
 };
 
+const processDeadlines = (response) => {
+  const deadlines = [];
+  
+  if (response?.tax_deadlines && Array.isArray(response.tax_deadlines)) {
+    response.tax_deadlines.forEach(d => {
+      if (d.is_overdue) return;
+      
+      deadlines.push({
+        name: d.name,
+        date: d.due_date,
+        isOverdue: false,
+        type: 'tax',
+        modelo: d.modelo,
+        description: d.description,
+        daysUntilDue: d.days_until_due
+      });
+    });
+  }
+  
+  if (response?.custom_reminders && Array.isArray(response.custom_reminders)) {
+    response.custom_reminders.forEach(r => {
+      if (r.is_overdue || r.is_removed) return;
+      
+      deadlines.push({
+        id: r.id,
+        name: r.title,
+        date: r.due_date,
+        isOverdue: false,
+        type: 'reminder',
+        modelo: r.modelo,
+        description: r.description,
+        daysUntilDue: r.days_until_due
+      });
+    });
+  }
+  
+  deadlines.sort((a, b) => new Date(a.date) - new Date(b.date));
+  return deadlines.slice(0, 5);
+};
+
+const formatPeriodName = (period) => {
+  if (!period) return '';
+  const quarterNames = {
+    'Q1': 'Jan-Mar',
+    'Q2': 'Apr-Jun', 
+    'Q3': 'Jul-Sep',
+    'Q4': 'Oct-Dec'
+  };
+  return `${period.quarter} ${period.year} (${quarterNames[period.quarter]})`;
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [hasNotifications, setHasNotifications] = useState(true);
   const [allDeadlines, setAllDeadlines] = useState([]);
+  const [isLoadingDeadlines, setIsLoadingDeadlines] = useState(true);
   const [showAddReminder, setShowAddReminder] = useState(false);
   
-  const [expenses, setExpenses] = useState(0);
-  const [income, setIncome] = useState(0);
-  const [totalExpenses, setTotalExpenses] = useState(0);
-  const [avgDeduction, setAvgDeduction] = useState(0);
+  const [periodFinancials, setPeriodFinancials] = useState(null);
+  const [isLoadingFinancials, setIsLoadingFinancials] = useState(true);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+
+  const refreshDeadlines = async () => {
+    try {
+      setIsLoadingDeadlines(true);
+      const deadlinesResponse = await getAllDeadlines();
+      const processedDeadlines = processDeadlines(deadlinesResponse);
+      setAllDeadlines(processedDeadlines);
+    } catch (error) {
+      console.error('Error fetching deadlines:', error);
+    } finally {
+      setIsLoadingDeadlines(false);
+    }
+  };
+
+  const refreshFinancials = async () => {
+    try {
+      setIsLoadingFinancials(true);
+      const financials = await getPeriodFinancials();
+      setPeriodFinancials(financials);
+    } catch (error) {
+      console.error('Error fetching period financials:', error);
+      setPeriodFinancials(null);
+    } finally {
+      setIsLoadingFinancials(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,21 +173,10 @@ const Dashboard = () => {
         const profile = await getProfile();
         setUserData(profile);
         
-        const deadlines = await getAllDeadlines();
-        setAllDeadlines(deadlines);
-        
-        const transactions = await getBankTransactions();
-        const exp = transactions
-          .filter(t => t.type === 'expense')
-          .reduce((sum, t) => sum + t.amount, 0);
-        const inc = transactions
-          .filter(t => t.type === 'income')
-          .reduce((sum, t) => sum + t.amount, 0);
-        
-        setExpenses(exp);
-        setIncome(inc);
-        setTotalExpenses(exp);
-        setAvgDeduction(exp * 0.21);
+        await Promise.all([
+          refreshDeadlines(),
+          refreshFinancials()
+        ]);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       }
@@ -114,10 +188,27 @@ const Dashboard = () => {
   const handleAddReminder = async (reminderData) => {
     try {
       await createReminder(reminderData);
-      const deadlines = await getAllDeadlines();
-      setAllDeadlines(deadlines);
+      await refreshDeadlines();
     } catch (error) {
       console.error('Error adding reminder:', error);
+    }
+  };
+
+  const handleCompleteReminder = async (reminderId) => {
+    try {
+      await completeReminder(reminderId);
+      await refreshDeadlines();
+    } catch (error) {
+      console.error('Error completing reminder:', error);
+    }
+  };
+
+  const handleDeleteReminder = async (reminderId) => {
+    try {
+      await deleteReminder(reminderId);
+      await refreshDeadlines();
+    } catch (error) {
+      console.error('Error deleting reminder:', error);
     }
   };
 
@@ -127,16 +218,23 @@ const Dashboard = () => {
   };
 
   const handleGenerateInvoice = async (invoiceData) => {
-  try {
-    console.log('Invoice data to save:', invoiceData);    
-    alert('Invoice generated successfully!');
-  } catch (error) {
-    console.error('Failed to generate invoice:', error);
-    throw error;
-  }
-};
+    try {
+      console.log('Invoice data to save:', invoiceData);    
+      alert('Invoice generated successfully!');
+      await refreshFinancials();
+    } catch (error) {
+      console.error('Failed to generate invoice:', error);
+      throw error;
+    }
+  };
 
   const firstName = userData?.full_name?.split(' ')[0] || 'User';
+
+  const income = periodFinancials?.total_income || 0;
+  const expenses = periodFinancials?.total_expenses || 0;
+  const netBalance = periodFinancials?.net_balance || 0;
+  const avgDeduction = expenses * 0.21; 
+  const currentPeriod = periodFinancials?.period;
 
   return (
     <DashboardContainer>
@@ -157,7 +255,11 @@ const Dashboard = () => {
             <QuickStatsTitle>Quick Tax Overview</QuickStatsTitle>
             <QuickStatsContent>
               <QuickStatsAmount>
-                €{(income - expenses).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                {isLoadingFinancials ? (
+                  '...'
+                ) : (
+                  `€${netBalance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}`
+                )}
               </QuickStatsAmount>
               <QuickStatsChart>
                 <AnyIcon icon={ChartGrafic} size="80px" />
@@ -170,11 +272,38 @@ const Dashboard = () => {
               <DeadlinesCard>
                 <CardTitle>Upcoming Deadlines</CardTitle>
                 <DeadlinesList>
-                  {allDeadlines.length > 0 ? (
+                  {isLoadingDeadlines ? (
+                    <DeadlineItem>
+                      <DeadlineName>Loading deadlines...</DeadlineName>
+                    </DeadlineItem>
+                  ) : allDeadlines.length > 0 ? (
                     allDeadlines.map((deadline, index) => (
-                      <DeadlineItem key={index} $isOverdue={deadline.isOverdue}>
-                        <DeadlineName>{deadline.name}</DeadlineName>
+                      <DeadlineItem key={deadline.id || `tax-${index}`} $isOverdue={deadline.isOverdue}>
+                        <DeadlineInfo>
+                          <DeadlineName>{deadline.name}</DeadlineName>
+                          <DeadlineType $type={deadline.type}>
+                            {deadline.type === 'tax' ? `Modelo ${deadline.modelo}` : 'Custom reminder'}
+                          </DeadlineType>
+                        </DeadlineInfo>
                         <DeadlineDate>{formatDeadlineDate(deadline.date)}</DeadlineDate>
+                        {deadline.type === 'reminder' && deadline.id && (
+                          <DeadlineActions>
+                            <ActionButton 
+                              $variant="complete" 
+                              onClick={() => handleCompleteReminder(deadline.id)}
+                              title="Mark as completed"
+                            >
+                              <AnyIcon icon={CheckIcon} size="16px" />
+                            </ActionButton>
+                            <ActionButton 
+                              $variant="delete" 
+                              onClick={() => handleDeleteReminder(deadline.id)}
+                              title="Remove reminder"
+                            >
+                              <AnyIcon icon={DeleteIcon} size="16px" />
+                            </ActionButton>
+                          </DeadlineActions>
+                        )}
                       </DeadlineItem>
                     ))
                   ) : (
@@ -189,7 +318,12 @@ const Dashboard = () => {
               </DeadlinesCard>
 
               <ExpensesSummaryCard>
-                <CardTitle>Expenses Summary</CardTitle>
+                <CardTitle>
+                  Expenses Summary
+                  {currentPeriod && (
+                    <PeriodLabel>{formatPeriodName(currentPeriod)}</PeriodLabel>
+                  )}
+                </CardTitle>
                 <ExpensesContent>
                   <DonutChartContainer>
                     <DonutChart expenses={expenses} income={income} />
@@ -207,12 +341,22 @@ const Dashboard = () => {
                 </ExpensesContent>
                 <ExpensesStats>
                   <ExpensesStat>
-                    <span>Total Expenses:</span>
-                    <span>€{totalExpenses.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                    <span>Total Income:</span>
+                    <span>
+                      {isLoadingFinancials ? '...' : `€${income.toLocaleString('es-ES', { minimumFractionDigits: 2 })}`}
+                    </span>
                   </ExpensesStat>
                   <ExpensesStat>
-                    <span>AVG Deduction:</span>
-                    <span>€{avgDeduction.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                    <span>Total Expenses:</span>
+                    <span>
+                      {isLoadingFinancials ? '...' : `€${expenses.toLocaleString('es-ES', { minimumFractionDigits: 2 })}`}
+                    </span>
+                  </ExpensesStat>
+                  <ExpensesStat>
+                    <span>Est. IVA Deduction:</span>
+                    <span>
+                      {isLoadingFinancials ? '...' : `€${avgDeduction.toLocaleString('es-ES', { minimumFractionDigits: 2 })}`}
+                    </span>
                   </ExpensesStat>
                 </ExpensesStats>
               </ExpensesSummaryCard>
@@ -220,9 +364,10 @@ const Dashboard = () => {
 
             <RightColumn>
               <AIChat userName={firstName} />
-            <GenerateInvoiceButton onClick={() => setShowInvoiceModal(true)}>
-              Generate invoice
-            </GenerateInvoiceButton>            </RightColumn>
+              <GenerateInvoiceButton onClick={() => setShowInvoiceModal(true)}>
+                Generate invoice
+              </GenerateInvoiceButton>
+            </RightColumn>
           </BottomRow>
         </DashboardGrid>
       </MainContent>
@@ -239,7 +384,6 @@ const Dashboard = () => {
         onClose={() => setShowInvoiceModal(false)}
         onSubmit={handleGenerateInvoice}
       />
-
     </DashboardContainer>
   );
 };

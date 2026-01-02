@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 from decimal import Decimal
+import tempfile
 import io
 import os
 
@@ -17,6 +18,12 @@ from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 
 from database import get_db, User, Invoice, InvoiceItem
 from auth import get_current_user
+
+try:
+    from docstrange import DocumentExtractor
+    HAS_DOCSTRANGE = True
+except ImportError:
+    HAS_DOCSTRANGE = False
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
@@ -99,6 +106,115 @@ class InvoiceDetailResponse(BaseModel):
     
     class Config:
         from_attributes = True
+        
+class UploadIncomeResponse(BaseModel):
+    invoice_id: int
+    amount: float
+    description: str
+    date: str
+    client_name: str
+
+
+@router.post("/upload", response_model=List[UploadIncomeResponse])
+async def upload_income_documents(
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    results = []
+    
+    for file in files:
+        if not file.content_type.startswith('image/') and file.content_type != 'application/pdf':
+            raise HTTPException(status_code=400, detail="Only images or PDF allowed")
+        
+        import uuid
+        from datetime import datetime
+        
+        invoice_number = f"INC-{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:4].upper()}"
+        
+        if HAS_DOCSTRANGE:
+            file_content = await file.read()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file.filename.split('.')[-1]}") as temp_file:
+                temp_path = temp_file.name
+                temp_file.write(file_content)
+            
+            try:
+                extractor = DocumentExtractor(api_key=os.getenv("DOCSTRANGE_API_KEY"))
+                result = extractor.extract(temp_path)
+                
+                fields = result.extract_data(
+                    specified_fields=[
+                        "total_amount", "due_date", "vendor_name", "invoice_number",
+                        "client_name", "description"
+                    ]
+                )
+                
+                content = fields.get('extracted_fields', {}).get('content', {})
+                
+                amount_str = str(content.get('total_amount', '0.0'))
+                amount = float(amount_str.replace(',', '.')) if amount_str != '0.0' else 0.0
+                
+                date_str = str(content.get('due_date', ''))
+                invoice_date = datetime.fromisoformat(date_str) if date_str else datetime.now()
+                
+                client_name = str(content.get('client_name', '')) or str(content.get('vendor_name', '')) or 'Unknown Client'
+                description = str(content.get('description', '')) or f"Uploaded: {file.filename}"
+                
+                parsed_invoice_num = content.get('invoice_number')
+                if parsed_invoice_num:
+                    invoice_number = str(parsed_invoice_num)
+                
+            finally:
+                os.unlink(temp_path)
+        else:
+            amount = 0.0
+            invoice_date = datetime.now()
+            client_name = "Unknown Client"
+            description = f"Uploaded: {file.filename}"
+        
+        existing = db.query(Invoice).filter(
+            Invoice.user_id == current_user.id,
+            Invoice.invoice_number == invoice_number
+        ).first()
+        
+        if existing:
+            invoice_number = f"{invoice_number}-{str(uuid.uuid4())[:4].upper()}"
+        
+        db_invoice = Invoice(
+            user_id=current_user.id,
+            business_name=current_user.full_name or "My Business",
+            client_name=client_name,
+            invoice_number=invoice_number,
+            invoice_date=invoice_date,
+            service_description=description,
+            total=amount,
+            status="created"
+        )
+        
+        db.add(db_invoice)
+        db.commit()
+        db.refresh(db_invoice)
+        
+        if amount > 0:
+            db_item = InvoiceItem(
+                invoice_id=db_invoice.id,
+                description=description,
+                quantity=1,
+                unit_price=amount,
+                amount=amount
+            )
+            db.add(db_item)
+            db.commit()
+        
+        results.append(UploadIncomeResponse(
+            invoice_id=db_invoice.id,
+            amount=amount,
+            description=description,
+            date=invoice_date.isoformat(),
+            client_name=client_name
+        ))
+    
+    return results
 
 
 def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.BytesIO:
