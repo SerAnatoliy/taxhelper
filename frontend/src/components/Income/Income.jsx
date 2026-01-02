@@ -6,6 +6,7 @@ import AppHeader from '../Shared/AppHeader';
 import GenerateInvoiceModal from '../GenerateInvoiceModal/GenerateInvoiceModal';
 import AddExpenseModal from '../AddExpenseModal/AddExpenseModal';
 import { getProfile, getInvoices, deleteInvoice, downloadInvoicePdf, uploadIncome } from '../../services/api';
+import DeleteConfirmModal from '../Shared/DeleteConfirmModal';
 
 import UploadIcon from '../../assets/icons/UploadInvoice.svg?react';
 import TrashIcon from '../../assets/icons/Delete.svg?react';
@@ -70,6 +71,12 @@ const Income = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [parsedFiles, setParsedFiles] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({
+  isOpen: false,
+  invoiceId: null,
+  invoiceName: '',
+});
+const [isDeleting, setIsDeleting] = useState(false);
 
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -178,6 +185,36 @@ const Income = () => {
       alert('Failed to delete invoice. Please try again.');
     }
   };
+
+  const handleDeleteClick = (invoice) => {
+  setDeleteModal({
+    isOpen: true,
+    invoiceId: invoice.id,
+    invoiceName: `#${invoice.invoice_number} - ${invoice.client_name}`,
+  });
+};
+
+    const handleDeleteConfirm = async () => {
+    if (!deleteModal.invoiceId) return;
+    
+    setIsDeleting(true);
+    try {
+        await deleteInvoice(deleteModal.invoiceId);
+        setInvoices((prev) => prev.filter((inv) => inv.id !== deleteModal.invoiceId));
+        setDeleteModal({ isOpen: false, invoiceId: null, invoiceName: '' });
+    } catch (error) {
+        console.error('Failed to delete invoice:', error);
+        alert('Failed to delete invoice');
+    } finally {
+        setIsDeleting(false);
+    }
+    };
+
+    const handleDeleteModalClose = () => {
+    if (!isDeleting) {
+        setDeleteModal({ isOpen: false, invoiceId: null, invoiceName: '' });
+    }
+    };
 
   const handleDownloadPdf = async (invoiceId) => {
     try {
@@ -306,12 +343,9 @@ const Income = () => {
                           >
                             <AnyIcon icon={DownloadIcon} size="20px" />
                           </ActionIconButton>
-                          <ActionIconButton 
-                            onClick={() => handleDeleteInvoice(invoice.id)}
-                            title="Delete invoice"
-                          >
+                            <ActionIconButton onClick={() => handleDeleteClick(invoice)}>
                             <AnyIcon icon={TrashIcon} size="20px" />
-                          </ActionIconButton>
+                            </ActionIconButton>
                         </ActionIconsWrapper>
                       </TableCell>
                     </TableRow>
@@ -380,6 +414,15 @@ const Income = () => {
           onClose={() => setShowExpenseModal(false)}
         />
       )}
+        <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteModalClose}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Invoice"
+        message="Are you sure you want to delete this invoice?"
+        itemName={deleteModal.invoiceName}
+        isDeleting={isDeleting}
+        />
     </IncomeContainer>
   );
 };

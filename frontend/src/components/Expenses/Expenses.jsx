@@ -10,6 +10,7 @@ import { getProfile, uploadExpenses, getExpenses, deleteExpense } from '../../se
 import UploadIcon from '../../assets/icons/UploadInvoice.svg?react';
 import TrashIcon from '../../assets/icons/Delete.svg?react';
 import EditIcon from '../../assets/icons/Edit.svg?react';
+import DeleteConfirmModal from '../Shared/DeleteConfirmModal';
 
 import {
   ExpensesContainer,
@@ -70,6 +71,12 @@ const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [nextDeadline, setNextDeadline] = useState({ date: 'Month dd', daysLeft: 'dd' });
+  const [deleteModal, setDeleteModal] = useState({
+  isOpen: false,
+  expenseId: null,
+  expenseName: '',
+});
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -168,17 +175,36 @@ const Expenses = () => {
     setAppliedFilters(clearedFilters);
   };
 
-  const handleDeleteExpense = async (expenseId) => {
-    if (!window.confirm('Are you sure you want to delete this expense?')) return;
-    
-    try {
-      await deleteExpense(expenseId);
-      setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
-    } catch (error) {
-      console.error('Failed to delete expense:', error);
-      alert('Failed to delete expense');
-    }
-  };
+  const handleDeleteClick = (expense) => {
+  setDeleteModal({
+    isOpen: true,
+    expenseId: expense.id,
+    expenseName: expense.description || `€${expense.amount}`,
+  });
+};
+
+const handleDeleteConfirm = async () => {
+  if (!deleteModal.expenseId) return;
+  
+  setIsDeleting(true);
+  try {
+    await deleteExpense(deleteModal.expenseId);
+    setExpenses((prev) => prev.filter((e) => e.id !== deleteModal.expenseId));
+    setDeleteModal({ isOpen: false, expenseId: null, expenseName: '' });
+  } catch (error) {
+    console.error('Failed to delete expense:', error);
+    alert('Failed to delete expense');
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+const handleDeleteModalClose = () => {
+  if (!isDeleting) {
+    setDeleteModal({ isOpen: false, expenseId: null, expenseName: '' });
+  }
+};
+
 
   const handleEditExpense = (expense) => {
     setEditingExpense(expense);
@@ -344,10 +370,9 @@ const Expenses = () => {
                       <TableCell>{expense.category || 'Deduct.'}</TableCell>
                       <TableCell>
                         <ActionIconsWrapper>
-                          <ActionIconButton onClick={() => handleDeleteExpense(expense.id)}>
-                            <AnyIcon icon={TrashIcon} size="20px" />
-                          </ActionIconButton>
-                          <ActionIconButton onClick={() => handleEditExpense(expense)}>
+                            <ActionIconButton onClick={() => handleDeleteClick(expense)}>
+                              <AnyIcon icon={TrashIcon} size="20px" />
+                            </ActionIconButton>                          <ActionIconButton onClick={() => handleEditExpense(expense)}>
                             <AnyIcon icon={EditIcon} size="20px" />
                           </ActionIconButton>
                         </ActionIconsWrapper>
@@ -376,6 +401,15 @@ const Expenses = () => {
           expense={editingExpense}
         />
       )}
+        <DeleteConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={handleDeleteModalClose}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Expense"
+          message="Are you sure you want to delete this expense?"
+          itemName={deleteModal.expenseName}
+          isDeleting={isDeleting}
+        />
     </ExpensesContainer>
   );
 };

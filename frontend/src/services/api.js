@@ -334,12 +334,15 @@ export const deleteExpense = async (expenseId) => {
   return response.data;
 };
 
-export const getExpenseAdvice = async (fullText, userRegion, userFamilyStatus) => {
-  const response = await api.post('/expenses/advice', {
-    full_text: fullText,
-    user_region: userRegion,
-    user_family_status: userFamilyStatus,
+export const getDeletedExpenses = async () => {
+  const response = await api.get('/expenses/', { 
+    params: { include_deleted: true } 
   });
+  return response.data.filter(e => e.is_deleted);
+};
+
+export const restoreExpense = async (expenseId) => {
+  const response = await api.post(`/expenses/${expenseId}/restore`);
   return response.data;
 };
 

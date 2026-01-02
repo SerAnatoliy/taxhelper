@@ -82,6 +82,8 @@ class Transaction(Base):
     invoice_id = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     plaid_transaction_id = Column(String(100), nullable=True, unique=True, index=True) 
+    is_deleted = Column(Boolean, default=False, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
     
     user = relationship("User", back_populates="transactions")
 
@@ -161,6 +163,9 @@ class Invoice(Base):
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    is_deleted = Column(Boolean, default=False, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
     
     user = relationship("User", back_populates="invoices")
     items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")

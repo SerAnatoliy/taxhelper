@@ -27,17 +27,6 @@ except ImportError:
     HAS_DOCSTRANGE = False
     logger.warning("docstrange not installed - document parsing disabled")
 
-try:
-    from openai import OpenAI
-    client = OpenAI(
-        api_key=os.getenv("GROK_API_KEY"),
-        base_url="https://api.x.ai/v1",
-    )
-    HAS_OPENAI = True
-except ImportError:
-    HAS_OPENAI = False
-    logger.warning("openai not installed - AI advice disabled")
-
 class ExpenseCreate(BaseModel):
     date: str
     amount: float
@@ -108,44 +97,34 @@ class GeneralAdviceResponse(BaseModel):
 
 @router.get("/", response_model=List[ExpenseResponse])
 async def get_expenses(
-    date_from: Optional[str] = Query(None, description="Filter from date (YYYY-MM-DD)"),
-    date_to: Optional[str] = Query(None, description="Filter to date (YYYY-MM-DD)"),
-    type: Optional[str] = Query(None, description="Filter by type: invoice or receipt"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    type: Optional[str] = None,
+    include_deleted: bool = False, 
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     query = db.query(Transaction).filter(
         Transaction.user_id == current_user.id,
-        Transaction.type.in_(["expense", "invoice", "receipt"])
+        Transaction.type == "expense"
     )
     
+    if not include_deleted:
+        query = query.filter(Transaction.is_deleted == False)
+    
     if date_from:
-        try:
-            from_date = datetime.strptime(date_from, "%Y-%m-%d")
-            query = query.filter(Transaction.date >= from_date)
-        except ValueError:
-            pass
-    
+        query = query.filter(Transaction.date >= datetime.fromisoformat(date_from))
     if date_to:
-        try:
-            to_date = datetime.strptime(date_to, "%Y-%m-%d")
-            query = query.filter(Transaction.date <= to_date)
-        except ValueError:
-            pass
+        query = query.filter(Transaction.date <= datetime.fromisoformat(date_to))
     
-    if type:
-        query = query.filter(Transaction.type == type)
-    
-    expenses = query.order_by(Transaction.date.desc()).offset(offset).limit(limit).all()
+    expenses = query.order_by(Transaction.date.desc()).all()
     
     return [
         ExpenseResponse(
             id=exp.id,
             date=exp.date,
-            amount=float(exp.amount) if exp.amount else 0.0,
-            type=exp.type or "invoice",
+            amount=float(exp.amount),
+            type=exp.type,
             category=exp.category,
             description=exp.description,
             invoice_id=exp.invoice_id,
@@ -287,13 +266,16 @@ async def delete_expense(
 ):
     expense = db.query(Transaction).filter(
         Transaction.id == expense_id,
-        Transaction.user_id == current_user.id
+        Transaction.user_id == current_user.id,
+        Transaction.is_deleted == False  
     ).first()
     
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
     
-    db.delete(expense)
+    expense.is_deleted = True
+    expense.deleted_at = datetime.utcnow()
+    
     db.commit()
     
     return {"message": "Expense deleted successfully", "id": expense_id}
@@ -405,108 +387,24 @@ async def upload_invoices(
     
     return results
 
-
-@router.post("/advice", response_model=AdviceResponse)
-async def get_ai_advice(
-    request: AdviceRequest,
+@router.post("/{expense_id}/restore")
+async def restore_expense(
+    expense_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if not HAS_OPENAI:
-        return AdviceResponse(
-            advice="AI advice not available. Please configure API keys.",
-            deductions={"IRPF": 21, "IVA": 21},
-            category="deductible",
-            estimated_tax=0.0,
-            confidence=0.0
-        )
-    
-    prompt = f"""
-    You are a tax advisor for Spanish autónomos.
-    Analyze this invoice text and give advice for IRPF/IVA deductions.
-    User: {current_user.full_name}, region: {request.user_region}, family_status: {request.user_family_status}, children: {current_user.num_children}.
-    Invoice text: {request.full_text}
-    
-    Respond in JSON only:
-    {{
-      "advice": "Short advice text",
-      "deductions": {{"IRPF": 21, "IVA": 10}},
-      "category": "deductible",
-      "estimated_tax": 195.75,
-      "confidence": 0.95
-    }}
-    """
-    
-    response = client.chat.completions.create(
-        model="grok-3",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.1,
-        max_tokens=300
-    )
-    
-    advice_json = response.choices[0].message.content.strip()
-    try:
-        parsed = json.loads(advice_json)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Invalid AI response")
-    
-    return AdviceResponse(**parsed)
-
-
-@router.post("/advice/general", response_model=GeneralAdviceResponse)
-async def get_general_tax_advice(
-    request: GeneralAdviceRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    if not HAS_OPENAI:
-        return GeneralAdviceResponse(
-            answer="AI advice not available.",
-            advice="Please configure API keys.",
-            deductions={},
-            estimated_tax=0.0,
-            suggestions=[],
-            confidence=0.0
-        )
-    
-    from_date = datetime.now() - timedelta(days=180)
-    transactions = db.query(Transaction).filter(
+    expense = db.query(Transaction).filter(
+        Transaction.id == expense_id,
         Transaction.user_id == current_user.id,
-        Transaction.date >= from_date
-    ).all()
+        Transaction.is_deleted == True
+    ).first()
     
-    total_income = sum(float(t.amount) for t in transactions if t.type == "income")
-    total_expenses = sum(float(t.amount) for t in transactions if t.type in ["expense", "invoice", "receipt"])
-    recent_invoices = [t.description for t in transactions if t.type in ["expense", "invoice", "receipt"]][:5]
+    if not expense:
+        raise HTTPException(status_code=404, detail="Deleted expense not found")
     
-    prompt = f"""
-    You are a tax advisor for Spanish autónomos. User asks: "{request.query}"
+    expense.is_deleted = False
+    expense.deleted_at = None
     
-    User profile: {current_user.full_name}, region: {current_user.region}, family_status: {current_user.family_status}.
-    Financials (last 6 months): Income {total_income}€, Expenses {total_expenses}€.
+    db.commit()
     
-    Respond in JSON only:
-    {{
-      "answer": "Direct answer",
-      "advice": "General advice",
-      "deductions": {{"IRPF": 21, "IVA": 10}},
-      "estimated_tax": 5000.0,
-      "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"],
-      "confidence": 0.95
-    }}
-    """
-    
-    response = client.chat.completions.create(
-        model="grok-3",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.1,
-        max_tokens=400
-    )
-    
-    advice_json = response.choices[0].message.content.strip()
-    try:
-        parsed = json.loads(advice_json)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Invalid AI response")
-    
-    return GeneralAdviceResponse(**parsed)
+    return {"message": "Expense restored successfully", "id": expense_id}
