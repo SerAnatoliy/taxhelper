@@ -5,6 +5,7 @@ import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard/Dashboard'; 
 import Expenses from './components/Expenses/Expenses';
 import Income from './components/Income/Income';
+import Reports from './components/Reports/Reports';
 import NotFound from './components/NotFound';
 import ProtectedRoute from './components/Shared/ProtectedRoute';
 
@@ -44,6 +45,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Expenses />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
             </ProtectedRoute>
           }
         />
