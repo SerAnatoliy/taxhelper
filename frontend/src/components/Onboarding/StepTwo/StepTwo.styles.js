@@ -5,7 +5,7 @@ export const VerificationCard = styled.div`
   width: 100%;
   max-width: 400px;
   background: rgba(255, 255, 255, 0.8);
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   text-align: center;
   margin: 1rem 0;
@@ -15,8 +15,8 @@ export const IconContainer = styled.div`
   width: 80px;
   height: 80px;
   margin: 0 auto 1rem;
-  background: ${({ $success }) => $success ? 'rgba(2, 194, 104, 0.1)' : 'rgba(1, 98, 187, 0.1)'};
-  border-radius: 50%;
+  background: ${({ $success }) => $success ? 'rgba(2, 194, 104, 0.1)' : theme.rgba.blueFocus};
+ border-radius: ${theme.borderRadius.full};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,17 +29,17 @@ export const IconContainer = styled.div`
 `;
 
 export const CardTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.lg};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   margin: 0 0 0.5rem;
 `;
 
 export const CardText = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
-  line-height: 1.5;
+  line-height: ${theme.typography.lineHeight.relaxed};
 `;
 
 export const VerifyButton = styled.button`
@@ -48,19 +48,19 @@ export const VerifyButton = styled.button`
   padding: 1rem 2rem;
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &:hover {
     border-color: ${theme.colors.logoBlue};
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;
@@ -68,9 +68,9 @@ export const VerifyButton = styled.button`
 export const StatusBadge = styled.span`
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+ border-radius: ${theme.borderRadius['2xl']};
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.semibold};
   background: ${({ $status }) => {
     switch ($status) {
       case 'approved': return 'rgba(2, 194, 104, 0.2)';
@@ -90,7 +90,7 @@ export const StatusBadge = styled.span`
 `;
 
 export const VeriffAttribution = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   margin: 1rem 0 0;
   text-align: center;
@@ -113,7 +113,7 @@ export const BenefitsList = styled.ul`
 
   li {
     padding: 0.5rem 0;
-    font-size: 14px;
+    font-size: ${theme.typography.fontSize.base};
     color: ${theme.colors.mainFont};
     display: flex;
     align-items: center;

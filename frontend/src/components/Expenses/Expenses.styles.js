@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 
 export const ExpensesContainer = styled.div`
   min-height: 100vh;
@@ -18,7 +18,7 @@ export const MainContent = styled.main`
   margin: 0 auto;
   box-sizing: border-box;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 0 2rem 2rem;
   }
 `;
@@ -29,7 +29,7 @@ export const ContentGrid = styled.div`
   gap: 1rem;
   width: 100%;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     display: grid;
     grid-template-columns: 1fr 320px;
     grid-template-rows: auto auto auto;
@@ -40,11 +40,11 @@ export const ContentGrid = styled.div`
 // Welcome Card
 export const WelcomeCard = styled.div`
   background: rgba(231, 248, 255, 0.8);
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   text-align: center;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1 / -1;
     text-align: left;
     padding: 2rem;
@@ -52,24 +52,24 @@ export const WelcomeCard = styled.div`
 `;
 
 export const WelcomeTitle = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 0.5rem;
 
-  @media (min-width: 768px) {
-    font-size: 32px;
+  ${media.md} {
+      font-size: ${theme.typography.fontSize['4xl']};
   }
 `;
 
 export const WelcomeSubtitle = styled.p`
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   font-style: italic;
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
 
-  @media (min-width: 768px) {
-    font-size: 18px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.lg};
   }
 `;
 
@@ -79,7 +79,7 @@ export const WelcomeActions = styled.div`
   gap: 1rem;
   justify-content: center;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     justify-content: flex-start;
   }
 `;
@@ -88,12 +88,12 @@ export const ActionBtn = styled.button`
   padding: 0.75rem 1.5rem;
   background: ${({ $primary }) => $primary ? theme.colors.mainButton : 'transparent'};
   border: ${({ $primary }) => $primary ? 'none' : `2px solid ${theme.colors.mainFont}`};
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
+ border-radius: ${theme.borderRadius['2xl']};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: ${theme.transitions.all};
 
   &:hover {
     background: ${({ $primary }) => $primary ? theme.colors.logoYellow : 'rgba(0,0,0,0.05)'};
@@ -103,14 +103,14 @@ export const ActionBtn = styled.button`
 // Upload Card
 export const UploadCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1;
     grid-row: 2;
   }
@@ -119,11 +119,11 @@ export const UploadCard = styled.div`
 export const UploadDropzone = styled.div`
   width: 100%;
   border: 2px dashed ${({ $isDragging }) => $isDragging ? theme.colors.logoBlue : theme.colors.mainFont};
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   padding: 2rem 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: ${({ $isDragging }) => $isDragging ? 'rgba(1, 98, 187, 0.05)' : 'transparent'};
+  transition: ${theme.transitions.all};
+  background: ${({ $isDragging }) => $isDragging ? theme.rgba.blueHover : 'transparent'};
 
   &:hover {
     border-color: ${theme.colors.logoBlue};
@@ -142,16 +142,16 @@ export const UploadIconWrapper = styled.div`
 `;
 
 export const UploadText = styled.p`
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
   margin: 0 0 0.5rem;
-  line-height: 1.5;
+  line-height: ${theme.typography.lineHeight.relaxed};
 `;
 
 export const UploadSubtext = styled.span`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
-  opacity: 0.7;
+  opacity: ${theme.opacity.subtle};
 `;
 
 export const BrowseButton = styled.button`
@@ -159,12 +159,12 @@ export const BrowseButton = styled.button`
   padding: 0.75rem 2rem;
   background: ${theme.colors.mainButton};
   border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
+ border-radius: ${theme.borderRadius['2xl']};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background ${theme.transitions.default};
 
   &:hover {
     background: ${theme.colors.logoYellow};
@@ -173,26 +173,26 @@ export const BrowseButton = styled.button`
 
 export const ParsedCount = styled.p`
   margin-top: 1rem;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
 `;
 
 // Filters Card
 export const FiltersCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   overflow: hidden;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 2;
     grid-row: 2 / 4;
   }
 `;
 
 export const FiltersTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
 `;
@@ -203,8 +203,8 @@ export const FilterSection = styled.div`
 
 export const FilterLabel = styled.label`
   display: block;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   margin-bottom: 0.5rem;
 `;
@@ -219,16 +219,16 @@ export const DateInput = styled.input`
   flex: 1;
   min-width: 0;
   padding: 0.5rem;
-  background: rgba(231, 248, 255, 0.5);
+  background: ${theme.rgba.blueLight};
   border: none;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.mainFont};
   box-sizing: border-box;
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
   }
 
   &:focus {
@@ -243,7 +243,7 @@ export const DateInput = styled.input`
   }
 
   @media (max-width: 400px) {
-    font-size: 12px;
+    font-size: ${theme.typography.fontSize.sm};
     padding: 0.4rem;
   }
 `;
@@ -258,7 +258,7 @@ export const RadioLabel = styled.label`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   cursor: pointer;
 `;
@@ -275,12 +275,12 @@ export const ApplyButton = styled.button`
   padding: 0.75rem;
   background: rgba(231, 248, 255, 0.8);
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background ${theme.transitions.default};
 
   &:hover {
     background: rgba(231, 248, 255, 1);
@@ -297,15 +297,15 @@ export const ClearButton = styled.button`
   padding: 0.75rem;
   background: transparent;
   border: 1px solid ${theme.colors.mainFont};
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background ${theme.transitions.default};
 
   &:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: ${theme.rgba.blackHover}; 
   }
 `;
 
@@ -314,12 +314,12 @@ export const ApplyButtonStyled = styled.button`
   padding: 0.75rem;
   background: rgba(231, 248, 255, 0.8);
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background ${theme.transitions.default};
 
   &:hover {
     background: rgba(231, 248, 255, 1);
@@ -329,19 +329,19 @@ export const ApplyButtonStyled = styled.button`
 // Expenses List Card
 export const ExpensesListCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   overflow-x: auto;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1;
     grid-row: 3;
   }
 `;
 
 export const ExpensesListTitle = styled.h2`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem;
   text-align: center;
@@ -354,13 +354,13 @@ export const ExpensesTable = styled.table`
 `;
 
 export const TableHead = styled.thead`
-  background: rgba(231, 248, 255, 0.5);
+  background: ${theme.rgba.blueLight};
 `;
 
 export const TableHeaderCell = styled.th`
   padding: 0.75rem 1rem;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   text-align: left;
   border: 1px solid ${theme.colors.mainFont};
@@ -374,13 +374,13 @@ export const TableBody = styled.tbody``;
 
 export const TableRow = styled.tr`
   &:hover {
-    background: rgba(254, 202, 58, 0.1);
+    background: ${theme.rgba.yellowHover};
   }
 `;
 
 export const TableCell = styled.td`
   padding: 0.75rem 1rem;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   border: 1px solid ${theme.colors.mainFont};
 
@@ -404,11 +404,11 @@ export const ActionIconButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  opacity: ${theme.opacity.subtle};
+  transition: ${theme.transitions.opacity};
 
   &:hover {
-    opacity: 1;
+    opacity: ${theme.opacity.full};
   }
 
   svg {
@@ -422,7 +422,7 @@ export const EmptyState = styled.div`
   text-align: center;
   padding: 2rem;
   color: ${theme.colors.mainFont};
-  opacity: 0.7;
+  opacity: ${theme.opacity.subtle};
 `;
 
 export const LoadingSpinner = styled.div`

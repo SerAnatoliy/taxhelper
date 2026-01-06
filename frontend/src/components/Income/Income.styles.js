@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 
 export {
   WelcomeCard,
@@ -45,7 +45,7 @@ export const MainContent = styled.main`
   margin: 0 auto;
   box-sizing: border-box;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 0 2rem 2rem;
   }
 `;
@@ -56,7 +56,7 @@ export const ContentGrid = styled.div`
   gap: 1rem;
   width: 100%;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     display: grid;
     grid-template-columns: 1fr 320px;
     grid-template-rows: auto auto auto auto;
@@ -66,11 +66,11 @@ export const ContentGrid = styled.div`
 
 export const FiltersCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   overflow: hidden;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 2;
     grid-row: 2;
   }
@@ -78,19 +78,19 @@ export const FiltersCard = styled.div`
 
 export const IncomeListCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   overflow-x: auto;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1;
     grid-row: 3 / 5;
   }
 `;
 
 export const IncomeListTitle = styled.h2`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem;
   text-align: center;
@@ -98,18 +98,18 @@ export const IncomeListTitle = styled.h2`
 
 export const SummaryCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 2;
     grid-row: 3;
   }
 `;
 
 export const SummaryTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.lg};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem;
 `;
@@ -123,18 +123,18 @@ export const SummaryItem = styled.div`
 
   &:last-child {
     border-bottom: none;
-    font-weight: 600;
+    font-weight: ${theme.typography.fontWeight.semibold};
   }
 `;
 
 export const SummaryLabel = styled.span`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
 `;
 
 export const SummaryValue = styled.span`
-  font-size: 16px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${({ $highlight }) => $highlight ? theme.colors.logoBlue : theme.colors.mainFont};
 `;
 
@@ -145,13 +145,13 @@ export const DataTable = styled.table`
 `;
 
 export const TableHead = styled.thead`
-  background: rgba(231, 248, 255, 0.5);
+  background: ${theme.rgba.blueLight};
 `;
 
 export const TableHeaderCell = styled.th`
   padding: 0.75rem 1rem;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   text-align: left;
   border: 1px solid ${theme.colors.mainFont};
@@ -165,13 +165,13 @@ export const TableBody = styled.tbody``;
 
 export const TableRow = styled.tr`
   &:hover {
-    background: rgba(254, 202, 58, 0.1);
+    background: ${theme.rgba.yellowHover};
   }
 `;
 
 export const TableCell = styled.td`
   padding: 0.75rem 1rem;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   border: 1px solid ${theme.colors.mainFont};
 
@@ -183,15 +183,15 @@ export const TableCell = styled.td`
 export const StatusBadge = styled.span`
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: ${theme.borderRadius.lg};
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.medium};
   text-transform: capitalize;
   background: ${({ $status }) => {
     switch ($status) {
-      case 'paid': return 'rgba(76, 175, 80, 0.15)';
+      case 'paid': return theme.rgba.successBg;
       case 'pending': return 'rgba(255, 152, 0, 0.15)';
-      case 'overdue': return 'rgba(244, 67, 54, 0.15)';
+      case 'overdue': return theme.rgba.deleteBg;
       default: return 'rgba(1, 98, 187, 0.15)';
     }
   }};

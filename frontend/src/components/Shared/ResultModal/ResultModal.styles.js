@@ -7,17 +7,17 @@ export const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: ${theme.rgba.blackOverlayDark};
   display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: ${theme.zIndex.overlay};
   padding: 1rem;
 `;
 
 export const ModalContent = styled.div`
   background: ${theme.colors.secondaryButton};
-  border-radius: 24px;
+  border-radius: ${theme.borderRadius['3xl']};
   padding: 2.5rem 3rem;
   width: 100%;
   max-width: 320px;
@@ -25,13 +25,13 @@ export const ModalContent = styled.div`
   flex-direction: column;
   align-items: center;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: ${theme.shadows.xl};
 `;
 
 export const IconCircle = styled.div`
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+ border-radius: ${theme.borderRadius.full};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,18 +51,18 @@ export const IconCircle = styled.div`
 `;
 
 export const ModalTitle = styled.h2`
-  font-size: 28px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['3xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
 `;
 
 export const ModalMessage = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
-  opacity: 0.8;
+  opacity: ${theme.opacity.hover};
   margin: 0 0 1.5rem;
-  line-height: 1.5;
+  line-height: ${theme.typography.lineHeight.relaxed};
 `;
 
 export const ModalButton = styled.button`
@@ -71,11 +71,11 @@ export const ModalButton = styled.button`
   background: ${theme.colors.mainButton};
   color: ${theme.colors.mainFont};
   border: 3px solid transparent;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};
 
   &:hover {
     border-color: ${theme.colors.logoBlue};
@@ -85,9 +85,9 @@ export const ModalButton = styled.button`
 export const CSVCode = styled.div`
   background: ${theme.colors.white};
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: ${theme.borderRadius.md};
   font-family: monospace;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   margin-bottom: 1.5rem;
   width: 100%;

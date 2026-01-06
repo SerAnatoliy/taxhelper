@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 
 export const DashboardContainer = styled.div`
   min-height: 100vh;
@@ -18,7 +18,7 @@ export const MainContent = styled.main`
   margin: 0 auto;
   box-sizing: border-box;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 0 2rem 2rem;
   }
 `;
@@ -29,7 +29,7 @@ export const DashboardGrid = styled.div`
   gap: 1rem;
   width: 100%;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
@@ -42,7 +42,7 @@ export const BottomRow = styled.div`
   flex-direction: column;
   gap: 1rem;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1 / -1;
     grid-row: 2;
     display: grid;
@@ -56,13 +56,13 @@ export const LeftColumn = styled.div`
   flex-direction: column;
   gap: 1rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
   }
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -76,18 +76,18 @@ export const RightColumn = styled.div`
   min-height: 400px;
   max-height: 500px;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     max-height: 450px;
   }
 `;
 
 export const WelcomeCard = styled.div`
   background: rgba(231, 248, 255, 0.8);
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   text-align: center;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1 / 2;
     grid-row: 1;
     text-align: left;
@@ -96,41 +96,41 @@ export const WelcomeCard = styled.div`
 `;
 
 export const WelcomeTitle = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 0.5rem;
 
-  @media (min-width: 768px) {
-    font-size: 32px;
+  ${media.md} {
+      font-size: ${theme.typography.fontSize['4xl']};
   }
 `;
 
 export const WelcomeSubtitle = styled.p`
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   font-style: italic;
   color: ${theme.colors.mainFont};
   margin: 0;
 
-  @media (min-width: 768px) {
-    font-size: 18px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.lg};
   }
 `;
 
 export const QuickStatsCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 2;
     grid-row: 1;
   }
 `;
 
 export const QuickStatsTitle = styled.h3`
-  font-size: 14px;
-  font-weight: 400;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.normal};
   color: ${theme.colors.mainFont};
   margin: 0 0 0.5rem;
 `;
@@ -142,12 +142,12 @@ export const QuickStatsContent = styled.div`
 `;
 
 export const QuickStatsAmount = styled.span`
-  font-size: 28px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['3xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
 
-  @media (min-width: 768px) {
-    font-size: 36px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize['5xl']};
   }
 `;
 
@@ -164,13 +164,13 @@ export const QuickStatsChart = styled.div`
 
 export const DeadlinesCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 `;
 
 export const CardTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.lg};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem;
   display: flex;
@@ -181,12 +181,12 @@ export const CardTitle = styled.h3`
 `;
 
 export const PeriodLabel = styled.span`
-  font-size: 12px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.logoBlue || '#0162BB'};
-  background: rgba(1, 98, 187, 0.1);
+  background: ${theme.rgba.blueFocus};
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: ${theme.borderRadius.sm};
 `;
 
 export const DeadlinesList = styled.div`
@@ -199,17 +199,17 @@ export const DeadlineItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${({ $isOverdue }) => $isOverdue ? theme.colors.error : theme.colors.mainFont};
 `;
 
 export const DeadlineName = styled.span`
-  font-weight: 500;
+  font-weight: ${theme.typography.fontWeight.medium};
 `;
 
 export const DeadlineDate = styled.span`
   color: ${theme.colors.mainFont};
-  opacity: 0.8;
+  opacity: ${theme.opacity.hover};
 `;
 
 export const DeadlineInfo = styled.div`
@@ -230,17 +230,17 @@ export const ActionButton = styled.button`
   border: none;
   padding: 0.25rem;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: ${theme.borderRadius.sm};
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: background-color ${theme.transitions.default}, transform ${theme.transitions.slow};
 
   &:hover {
     background-color: ${({ $variant }) => 
-      $variant === 'complete' ? 'rgba(76, 175, 80, 0.15)' : 
-      $variant === 'delete' ? 'rgba(244, 67, 54, 0.15)' : 
-      'rgba(0, 0, 0, 0.05)'};
+      $variant === 'complete' ? theme.rgba.successBg : 
+      $variant === 'delete' ? theme.rgba.deleteBg : 
+      theme.rgba.blackHover};
     transform: scale(1.1);
   }
 
@@ -259,12 +259,12 @@ export const ActionButton = styled.button`
 `;
 
 export const DeadlineType = styled.span`
-  font-size: 10px;
+  font-size: ${theme.typography.fontSize.xs};
   text-transform: uppercase;
   color: ${({ $type }) => 
     $type === 'tax' ? theme.colors.logoBlue || '#0162BB' : 
     theme.colors.mainFont};
-  opacity: 0.7;
+  opacity: ${theme.opacity.subtle};
   letter-spacing: 0.5px;
 `;
 
@@ -273,12 +273,12 @@ export const AddReminderButton = styled.button`
   padding: 0.5rem 1.5rem;
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
+ border-radius: ${theme.borderRadius['2xl']};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &:hover {
     border-color: ${theme.colors.logoBlue};
@@ -287,7 +287,7 @@ export const AddReminderButton = styled.button`
 
 export const ExpensesSummaryCard = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 `;
 
@@ -313,14 +313,14 @@ export const LegendItem = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
 `;
 
 export const LegendDot = styled.span`
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+ border-radius: ${theme.borderRadius.full};
   background: ${({ $color }) => $color};
 `;
 
@@ -334,7 +334,7 @@ export const ExpensesStats = styled.div`
 export const ExpensesStat = styled.div`
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
 `;
 
@@ -343,12 +343,12 @@ export const GenerateInvoiceButton = styled.button`
   padding: 0.75rem;
   background: rgba(231, 248, 255, 0.8);
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: ${theme.borderRadius.lg};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background ${theme.transitions.default};
   flex-shrink: 0;
 
   &:hover {

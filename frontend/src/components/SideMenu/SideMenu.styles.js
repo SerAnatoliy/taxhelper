@@ -8,11 +8,11 @@ export const MenuOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: ${theme.rgba.blackOverlay};
   opacity: ${({ $open }) => ($open ? 1 : 0)};
   visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-  z-index: 1000;
+  transition: opacity ${theme.transitions.slow}, visibility ${theme.transitions.slow};
+  z-index: ${theme.zIndex.overlay};
 `;
 
 export const MenuPanel = styled.div`
@@ -28,8 +28,8 @@ export const MenuPanel = styled.div`
   align-items: center;
   padding: 2rem 1.5rem;
   transform: ${({ $open }) => ($open ? 'translateX(0)' : 'translateX(100%)')};
-  transition: transform 0.3s ease;
-  z-index: 1001;
+  transition: transform ${theme.transitions.slow};
+  z-index: ${theme.zIndex.sideMenu};
   box-sizing: border-box;
 
   @media (max-width: 767px) {
@@ -51,7 +51,7 @@ export const CloseButton = styled.button`
   padding: 0.5rem;
 
   &:hover {
-    opacity: 0.7;
+    opacity: ${theme.opacity.subtle};
   }
 `;
 
@@ -67,30 +67,30 @@ export const MenuNav = styled.nav`
 export const MenuLink = styled(Link)`
   color: ${theme.colors.mainFont};
   text-decoration: none;
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.medium};
   font-style: italic;
   text-align: center;
-  transition: opacity 0.2s ease;
+  transition: ${theme.transitions.opacity};
 
   &:hover,
   &:focus {
-    opacity: 0.7;
+    opacity: ${theme.opacity.subtle};
   }
 `;
 
 export const FeedbackLink = styled(Link)`
   color: ${theme.colors.mainFont};
   text-decoration: none;
-  font-size: 1.125rem;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.medium};
   font-style: italic;
   margin-top: auto;
   padding-bottom: 1rem;
-  transition: opacity 0.2s ease;
+  transition: ${theme.transitions.opacity};
 
   &:hover,
   &:focus {
-    opacity: 0.7;
+    opacity: ${theme.opacity.subtle};
   }
 `;

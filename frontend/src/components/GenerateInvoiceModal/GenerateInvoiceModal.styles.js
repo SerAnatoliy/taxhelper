@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 import { SubmitButton } from '../Shared/ActionButton/ActionButton';
 
 export const ModalOverlay = styled.div`
@@ -8,11 +8,11 @@ export const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: ${theme.rgba.blackOverlayDark};
   display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: ${theme.zIndex.overlay};
   padding: 1rem;
   overflow-y: auto;
     ${({ $isOpen }) => $isOpen && `
@@ -24,7 +24,7 @@ export const ModalOverlay = styled.div`
 
 export const ModalContent = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   width: 100%;
   max-width: 800px;
@@ -44,17 +44,17 @@ export const CloseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  opacity: ${theme.opacity.subtle};
+  transition: ${theme.transitions.opacity};
 
   &:hover {
-    opacity: 1;
+    opacity: ${theme.opacity.full};
   }
 `;
 
 export const ModalTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
   text-align: center;
@@ -65,7 +65,7 @@ export const FormGrid = styled.div`
   grid-template-columns: 1fr;
   gap: 1.5rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     grid-template-columns: 1fr 1fr;
   }
 `;
@@ -75,8 +75,8 @@ export const FormSection = styled.div`
 `;
 
 export const SectionTitle = styled.h3`
-  font-size: 16px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem;
   padding-bottom: 0.5rem;
@@ -95,8 +95,8 @@ export const FormRow = styled.div`
 
 export const Label = styled.label`
   display: block;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   margin-bottom: 0.5rem;
 `;
@@ -105,12 +105,12 @@ export const TextArea = styled.textarea`
   width: 100%;
   min-height: 80px;
   padding: 0.75rem 1rem;
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   font-family: inherit;
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   box-sizing: border-box;
   resize: vertical;
 
@@ -121,7 +121,7 @@ export const TextArea = styled.textarea`
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.5;
+    opacity: ${theme.opacity.overlayDark};
   }
 `;
 
@@ -139,8 +139,8 @@ export const TableHeader = styled.th`
   background: ${theme.colors.lightGrey};
   padding: 0.75rem;
   text-align: left;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   border-bottom: 2px solid #e5e7eb;
 
@@ -158,11 +158,11 @@ export const TableInput = styled.input`
   width: 100%;
   height: 40px;
   padding: 0 0.75rem;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
-  border-radius: 8px;
+  border-radius: ${theme.borderRadius.md};
   box-sizing: border-box;
 
   &:focus {
@@ -172,7 +172,7 @@ export const TableInput = styled.input`
 `;
 
 export const AmountCell = styled.td`
-  font-weight: 600;
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   text-align: right;
   padding-right: 1rem;
@@ -180,14 +180,14 @@ export const AmountCell = styled.td`
 `;
 
 export const RemoveItemButton = styled.button`
-  background: rgba(218, 28, 28, 0.1);
+  background: ${theme.rgba.errorBg};
   color: ${theme.colors.error};
   border: none;
   padding: 0.375rem 0.75rem;
-  border-radius: 8px;
+  border-radius: ${theme.borderRadius.md};
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s ease;
+  font-size: ${theme.typography.fontSize.base};
+  transition: background ${theme.transitions.default};
 
   &:hover {
     background: rgba(218, 28, 28, 0.2);
@@ -202,14 +202,14 @@ export const AddItemButton = styled.button`
   color: ${theme.colors.logoBlue};
   border: 2px dashed ${theme.colors.logoBlue};
   padding: 0.5rem 1rem;
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s ease;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
+  transition: background ${theme.transitions.default};
 
   &:hover {
-    background: rgba(1, 98, 187, 0.1);
+    background: ${theme.rgba.blueFocus};
   }
 `;
 
@@ -218,13 +218,13 @@ export const TotalSection = styled.div`
   justify-content: flex-end;
   padding: 1rem;
   background: ${theme.colors.lightGrey};
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   margin-top: 1rem;
 `;
 
 export const TotalAmount = styled.div`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
 
   span {
@@ -261,7 +261,7 @@ export const GenerateButton = styled(SubmitButton)`
 `;
 
 export const ErrorText = styled.span`
-  font-size: 12px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.error};
   margin-top: 4px;
   display: block;
@@ -270,7 +270,7 @@ export const ErrorText = styled.span`
 export const PreviewContainer = styled.div`
   background: ${theme.colors.lightGrey};
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
 `;
 
 export const PreviewInvoice = styled.div`
@@ -278,8 +278,8 @@ export const PreviewInvoice = styled.div`
   padding: 2rem;
   max-width: 700px;
   margin: 0 auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  box-shadow: ${theme.shadows.md};
+  border-radius: ${theme.borderRadius.md};
 `;
 
 export const PreviewHeader = styled.div`
@@ -292,8 +292,8 @@ export const PreviewHeader = styled.div`
 
 export const PreviewBusiness = styled.div`
   h1 {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: ${theme.typography.fontSize.xl};
+    font-weight: ${theme.typography.fontWeight.bold};
     color: ${theme.colors.mainFont};
     margin: 0 0 0.5rem;
   }
@@ -301,8 +301,8 @@ export const PreviewBusiness = styled.div`
   p {
     margin: 0.25rem 0;
     color: ${theme.colors.mainFont};
-    opacity: 0.8;
-    font-size: 0.875rem;
+    opacity: ${theme.opacity.hover};
+    font-size: ${theme.typography.fontSize.base};
   }
 `;
 
@@ -310,15 +310,15 @@ export const PreviewMeta = styled.div`
   text-align: right;
   
   h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+    font-weight: ${theme.typography.fontWeight.bold};
     color: ${theme.colors.logoBlue};
     margin: 0 0 0.5rem;
   }
   
   p {
     margin: 0.25rem 0;
-    font-size: 0.875rem;
+    font-size: ${theme.typography.fontSize.base};
     color: ${theme.colors.mainFont};
   }
 `;
@@ -327,8 +327,8 @@ export const PreviewClient = styled.div`
   margin-bottom: 2rem;
   
   h3 {
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: ${theme.typography.fontSize.base};
+    font-weight: ${theme.typography.fontWeight.semibold};
     color: ${theme.colors.mainFont};
     margin: 0 0 0.5rem;
     text-transform: uppercase;
@@ -336,7 +336,7 @@ export const PreviewClient = styled.div`
   
   p {
     margin: 0.25rem 0;
-    font-size: 0.875rem;
+    font-size: ${theme.typography.fontSize.base};
     color: ${theme.colors.mainFont};
   }
 `;
@@ -350,15 +350,15 @@ export const PreviewTable = styled.table`
     background: ${theme.colors.lightGrey};
     padding: 0.75rem;
     text-align: left;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: ${theme.typography.fontSize.sm};
+    font-weight: ${theme.typography.fontWeight.semibold};
     text-transform: uppercase;
     border-bottom: 2px solid #e5e7eb;
   }
   
   td {
     padding: 0.75rem;
-    font-size: 0.875rem;
+    font-size: ${theme.typography.fontSize.base};
     border-bottom: 1px solid #e5e7eb;
   }
   
@@ -376,18 +376,18 @@ export const PreviewTotalRow = styled.div`
 export const PreviewTotalBox = styled.div`
   background: ${theme.colors.lightGrey};
   padding: 1rem 1.5rem;
-  border-radius: 8px;
+  border-radius: ${theme.borderRadius.md};
   text-align: right;
   
   span {
-    font-size: 0.875rem;
+    font-size: ${theme.typography.fontSize.base};
     color: ${theme.colors.mainFont};
   }
   
   strong {
     display: block;
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+    font-weight: ${theme.typography.fontWeight.bold};
     color: ${theme.colors.logoBlue};
     margin-top: 0.25rem;
   }
@@ -399,9 +399,9 @@ export const PreviewFooter = styled.div`
   border-top: 1px solid #e5e7eb;
   
   p {
-    font-size: 0.75rem;
+    font-size: ${theme.typography.fontSize.sm};
     color: ${theme.colors.mainFont};
-    opacity: 0.7;
+    opacity: ${theme.opacity.subtle};
     margin: 0;
   }
 `;

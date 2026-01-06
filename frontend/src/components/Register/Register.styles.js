@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media} from '../../theme';
 
 export const MainContent = styled.main`
   flex: 1;
@@ -8,7 +8,7 @@ export const MainContent = styled.main`
   align-items: flex-start;
   padding: 2rem 1rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 3rem 2rem;
   }
 `;
@@ -25,7 +25,7 @@ export const NameFieldsRow = styled.div`
   flex-direction: column;
   gap: 1rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     flex-direction: row;
     gap: 1.5rem;
 
@@ -46,14 +46,14 @@ export const PasswordRequirements = styled.ul`
   padding: 0.75rem 1rem;
   list-style: none;
   background: rgba(255, 255, 255, 0.7);
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.typography.fontSize.sm};
 `;
 
 export const RequirementItem = styled.li`
   color: ${({ $met }) => ($met ? theme.colors.successGreen : theme.colors.mainFont)};
   padding: 2px 0;
-  transition: color 0.2s ease;
+  transition: color ${theme.transitions.default};
 `;
 
 export const ButtonContainer = styled.div`
@@ -63,18 +63,18 @@ export const ButtonContainer = styled.div`
 `;
 
 export const LoginText = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   text-align: left;
   margin: 0.5rem 0 0 0;
 
-  @media (min-width: 768px) {
-    font-size: 16px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.md};
   }
 `;
 
 export const ErrorMessage = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.error};
   text-align: center;
   margin: 0;

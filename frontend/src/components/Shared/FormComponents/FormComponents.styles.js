@@ -1,15 +1,15 @@
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { theme } from '../../../theme';
+import { theme, media } from '../../../theme';
 
 export const PageTitle = styled.h1`
   font-size: ${({ $size }) => $size || '32px'};
-  font-weight: 700;
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem 0;
   text-align: ${({ $align }) => $align || 'center'};
 
-  @media (min-width: 768px) {
+  ${media.md} {
     font-size: ${({ $size }) => $size || '40px'};
   }
 `;
@@ -20,9 +20,9 @@ export const PageSubtitle = styled.p`
   text-align: ${({ $align }) => $align || 'center'};
   margin: 0 0 2rem 0;
   max-width: ${({ $maxWidth }) => $maxWidth || '500px'};
-  line-height: 1.5;
+  line-height: ${theme.typography.lineHeight.relaxed};
 
-  @media (min-width: 768px) {
+  ${media.md} {
     font-size: ${({ $size }) => $size || '18px'};
   }
 `;
@@ -43,23 +43,23 @@ export const StyledFormInput = styled.input`
   border: 2px solid ${({ $hasError }) => ($hasError ? theme.colors.error : 'transparent')};
   border-radius: ${({ $borderRadius }) => $borderRadius || '12px'};
   box-sizing: border-box;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: ${theme.transitions.input};
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
   }
 
   &:focus {
     outline: none;
     border-color: ${({ $hasError }) =>
       $hasError ? theme.colors.error : theme.colors.logoBlue};
-    box-shadow: 0 0 0 3px ${({ $hasError }) =>
-      $hasError ? 'rgba(218, 28, 28, 0.1)' : 'rgba(1, 98, 187, 0.1)'};
+    box-shadow: ${theme.shadows.sm} ${({ $hasError }) =>
+      $hasError ? theme.shadows.focus.default : theme.shadows.focus.error};
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;
@@ -77,15 +77,15 @@ export const PasswordToggle = styled.button`
   align-items: center;
   justify-content: center;
   color: ${theme.colors.mainFont};
-  opacity: 0.6;
+  opacity: ${theme.opacity.muted};
 
   &:hover {
-    opacity: 1;
+    opacity: ${theme.opacity.full};
   }
 `;
 
 export const ErrorText = styled.span`
-  font-size: 12px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.error};
   margin-top: 4px;
   display: block;
@@ -110,9 +110,9 @@ export const CheckboxLabelStyled = styled.label`
   font-size: ${({ $fontSize }) => $fontSize || '14px'};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  line-height: 1.4;
+  line-height: ${theme.typography.lineHeight.normal};
 
-  @media (min-width: 768px) {
+  ${media.md} {
     font-size: ${({ $fontSize }) => $fontSize || '16px'};
   }
 `;
@@ -136,11 +136,7 @@ export const GradientPageContainer = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    180deg,
-    ${theme.colors.mainColor} 0%,
-    ${theme.colors.mainColorYellow} 100%
-  );
+  background:${theme.gradients.primary};
   overflow-x: hidden;
   width: 100%;
   box-sizing: border-box;

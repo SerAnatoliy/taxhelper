@@ -1,9 +1,9 @@
 import styled, { keyframes } from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 
 export const ChatContainer = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -20,13 +20,13 @@ export const ChatHeader = styled.div`
 `;
 
 export const ChatTitle = styled.h3`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0;
 
-  @media (min-width: 768px) {
-    font-size: 24px;
+  ${media.md}{
+      font-size: ${theme.typography.fontSize['2xl']};
   }
 `;
 
@@ -34,8 +34,8 @@ export const NewChatButton = styled.button`
   background: none;
   border: none;
   color: ${theme.colors.logoBlue};
-  font-size: 14px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   
@@ -59,20 +59,20 @@ export const MessagesContainer = styled.div`
   }
   &::-webkit-scrollbar-track {
     background: #f1f1f1;
-    border-radius: 3px;
+    border-radius: ${theme.borderRadius.sm};
   }
   &::-webkit-scrollbar-thumb {
     background: #ccc;
-    border-radius: 3px;
+    border-radius: ${theme.borderRadius.sm};
   }
 `;
 
 export const MessageBubble = styled.div`
   max-width: 85%;
   padding: 0.75rem 1rem;
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.5;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.base};
+  line-height: ${theme.typography.lineHeight.relaxed};
   
   ${({ $role }) => $role === 'user' ? `
     align-self: flex-end;
@@ -88,10 +88,10 @@ export const MessageBubble = styled.div`
 `;
 
 export const MessageRole = styled.span`
-  font-size: 12px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
-  opacity: 0.6;
+  opacity: ${theme.opacity.muted};
   display: block;
   margin-bottom: 0.25rem;
 `;
@@ -103,15 +103,15 @@ export const MessageContent = styled.p`
 `;
 
 export const ResponseCard = styled.div`
-  background: rgba(231, 248, 255, 0.5);
-  border-radius: 8px;
+  background:${theme.rgba.blueLight};
+  border-radius: ${theme.borderRadius.md};
   padding: 0.75rem;
   margin-top: 0.75rem;
 `;
 
 export const ResponseCardTitle = styled.div`
-  font-size: 12px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.logoBlue};
   margin-bottom: 0.5rem;
   display: flex;
@@ -125,18 +125,18 @@ export const DeductionsGrid = styled.div`
 `;
 
 export const DeductionItem = styled.div`
-  font-size: 13px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.mainFont};
   
   span {
-    font-weight: 600;
+    font-weight: ${theme.typography.fontWeight.semibold};
   }
 `;
 
 export const SuggestionsList = styled.ul`
   margin: 0;
   padding-left: 1.25rem;
-  font-size: 13px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.mainFont};
   
   li {
@@ -153,19 +153,19 @@ export const ModeloTags = styled.div`
 export const ModeloTag = styled.span`
   background: ${theme.colors.mainButton};
   color: ${theme.colors.mainFont};
-  font-size: 11px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.xs};
+  font-weight: ${theme.typography.fontWeight.semibold};
   padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  border-radius: ${theme.borderRadius.sm};
 `;
 
 export const OffTopicBadge = styled.span`
   background: #ffebee;
   color: ${theme.colors.error};
-  font-size: 11px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.xs};
+  font-weight: ${theme.typography.fontWeight.semibold};
   padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  border-radius: ${theme.borderRadius.sm};
   margin-left: 0.5rem;
 `;
 
@@ -180,7 +180,7 @@ export const TypingIndicator = styled.div`
   gap: 4px;
   padding: 0.75rem 1rem;
   background: ${theme.colors.lightGrey};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   border-bottom-left-radius: 4px;
 `;
 
@@ -188,8 +188,8 @@ export const TypingDot = styled.span`
   width: 8px;
   height: 8px;
   background: ${theme.colors.mainFont};
-  opacity: 0.4;
-  border-radius: 50%;
+  opacity: ${theme.opacity.overlay};
+  border-radius: ${theme.borderRadius.full};
   animation: ${bounce} 1.4s ease-in-out infinite;
   
   &:nth-child(1) { animation-delay: 0s; }
@@ -202,7 +202,7 @@ export const InputContainer = styled.div`
   align-items: center;
   background: ${theme.colors.white};
   border: 2px solid ${theme.colors.mainFont};
-  border-radius: 24px;
+  border-radius: ${theme.borderRadius['3xl']};
   padding: 0.5rem 1rem;
 `;
 
@@ -210,17 +210,17 @@ export const ChatInput = styled.input`
   flex: 1;
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   background: transparent;
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
   }
   
   &:disabled {
-    opacity: 0.5;
+    opacity: ${theme.opacity.overlayDark};
   }
 `;
 
@@ -234,7 +234,7 @@ export const SendButton = styled.button`
   justify-content: center;
   
   &:disabled {
-    opacity: 0.3;
+    opacity: ${theme.opacity.overlay};
     cursor: not-allowed;
   }
   
@@ -252,12 +252,12 @@ export const EmptyState = styled.div`
   align-items: center;
   justify-content: center;
   color: ${theme.colors.mainFont};
-  opacity: 0.6;
+  opacity: ${theme.opacity.muted};
   text-align: center;
   padding: 2rem;
   
   p {
     margin: 0.5rem 0 0;
-    font-size: 14px;
+    font-size: ${theme.typography.fontSize.base};
   }
 `;

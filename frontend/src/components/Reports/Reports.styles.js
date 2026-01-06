@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 
 export const ReportsContainer = styled.div`
   min-height: 100vh;
@@ -18,7 +18,7 @@ export const MainContent = styled.main`
   margin: 0 auto;
   box-sizing: border-box;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 0 2rem 2rem;
   }
 `;
@@ -29,7 +29,7 @@ export const ContentGrid = styled.div`
   gap: 1rem;
   width: 100%;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     display: grid;
     grid-template-columns: 1fr 320px;
     gap: 1.5rem;
@@ -38,11 +38,11 @@ export const ContentGrid = styled.div`
 
 export const WelcomeCard = styled.div`
   background: rgba(231, 248, 255, 0.8);
-  border-radius: 16px;
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   text-align: center;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1 / -1;
     text-align: left;
     padding: 2rem;
@@ -50,53 +50,53 @@ export const WelcomeCard = styled.div`
 `;
 
 export const WelcomeTitle = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 0.5rem;
 
-  @media (min-width: 768px) {
-    font-size: 32px;
+  ${media.md} {
+      font-size: ${theme.typography.fontSize['4xl']};
   }
 `;
 
 export const WelcomeSubtitle = styled.p`
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   font-style: italic;
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
 
-  @media (min-width: 768px) {
-    font-size: 18px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.lg};
   }
 `;
 
 export const Card = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 2rem;
   }
 `;
 
 export const CardTitle = styled.h2`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem;
 `;
 
 export const CardSubtitle = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
-  opacity: 0.7;
+  opacity: ${theme.opacity.subtle};
   margin: 0;
 `;
 
 export const WizardCard = styled(Card)`
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1 / -1;
   }
 `;
@@ -109,7 +109,7 @@ export const WizardHeader = styled.div`
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
-  @media (min-width: 768px) {
+  ${media.md} {
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-start;
@@ -117,13 +117,13 @@ export const WizardHeader = styled.div`
 `;
 
 export const WizardTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0;
 
-  @media (min-width: 768px) {
-    font-size: 28px;
+  ${media.md} {
+      font-size: ${theme.typography.fontSize['3xl']};
   }
 `;
 
@@ -139,9 +139,9 @@ export const StepIndicator = styled.span`
   align-items: center;
   padding: 0.5rem 1rem;
   background: ${theme.colors.mainButton};
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: ${theme.borderRadius['2xl']};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
 `;
 
@@ -149,9 +149,9 @@ export const StatusBadge = styled.span`
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+ border-radius: ${theme.borderRadius['2xl']};
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.semibold};
   text-transform: uppercase;
 
   ${({ $status }) => {
@@ -202,9 +202,9 @@ export const StepItem = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
-  transition: background 0.2s ease;
+  transition: background ${theme.transitions.default};
   background: ${({ $active }) => ($active ? 'rgba(254, 214, 57, 0.2)' : 'transparent')};
 
   &:hover {
@@ -213,12 +213,12 @@ export const StepItem = styled.div`
 `;
 
 export const StepTitle = styled.span`
-  font-size: 18px;
+  font-size: ${theme.typography.fontSize.lg};
   font-weight: ${({ $active }) => ($active ? '600' : '400')};
   color: ${theme.colors.mainFont};
 
-  @media (min-width: 768px) {
-    font-size: 20px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.xl};
   }
 `;
 
@@ -235,40 +235,40 @@ export const CalculationGrid = styled.div`
   gap: 1rem;
   margin: 1.5rem 0;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     grid-template-columns: repeat(4, 1fr);
   }
 `;
 
 export const CalculationCard = styled.div`
   background: ${({ $highlight }) => ($highlight ? 'rgba(254, 214, 57, 0.3)' : theme.colors.lightGrey)};
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   padding: 1rem;
   text-align: center;
   border: ${({ $highlight }) => ($highlight ? `2px solid ${theme.colors.mainButton}` : 'none')};
 `;
 
 export const CalculationLabel = styled.div`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
-  opacity: 0.7;
+  opacity: ${theme.opacity.subtle};
   margin-bottom: 0.5rem;
 `;
 
 export const CalculationValue = styled.div`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
 
-  @media (min-width: 768px) {
-    font-size: 24px;
+  ${media.md} {
+      font-size: ${theme.typography.fontSize['2xl']};
   }
 `;
 
 export const CalculationSubtext = styled.div`
-  font-size: 12px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.mainFont};
-  opacity: 0.6;
+  opacity: ${theme.opacity.muted};
   margin-top: 0.25rem;
 `;
 
@@ -283,7 +283,7 @@ export const CalculationRow = styled.div`
   padding: 0.75rem 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
-  @media (min-width: 768px) {
+  ${media.md} {
     grid-template-columns: 1fr 1fr 1fr 1fr;
   }
 
@@ -293,13 +293,13 @@ export const CalculationRow = styled.div`
 `;
 
 export const CalculationCell = styled.div`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${({ $label }) => ($label ? theme.colors.mainFont : theme.colors.mainFont)};
   opacity: ${({ $label }) => ($label ? 0.7 : 1)};
   font-weight: ${({ $value }) => ($value ? '600' : '400')};
 
-  @media (min-width: 768px) {
-    font-size: 16px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.md};
   }
 `;
 
@@ -308,18 +308,18 @@ export const InfoBadge = styled.div`
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(2, 176, 194, 0.15);
+  background: ${theme.rgba.tealBadge};
   color: ${theme.colors.logoTeal};
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.medium};
   cursor: help;
 `;
 
 export const ReportsListCard = styled(Card)`
   overflow-x: auto;
 
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-column: 1;
   }
 `;
@@ -331,13 +331,13 @@ export const ReportsTable = styled.table`
 `;
 
 export const TableHead = styled.thead`
-  background: rgba(231, 248, 255, 0.5);
+  background: ${theme.rgba.blueLight};
 `;
 
 export const TableHeaderCell = styled.th`
   padding: 0.75rem 1rem;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   text-align: left;
   border: 1px solid ${theme.colors.mainFont};
@@ -351,13 +351,13 @@ export const TableBody = styled.tbody``;
 
 export const TableRow = styled.tr`
   &:hover {
-    background: rgba(254, 202, 58, 0.1);
+    background: ${theme.rgba.yellowHover};
   }
 `;
 
 export const TableCell = styled.td`
   padding: 0.75rem 1rem;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   border: 1px solid ${theme.colors.mainFont};
 
@@ -381,11 +381,11 @@ export const ActionIconButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  opacity: ${theme.opacity.subtle};
+  transition: ${theme.transitions.opacity};
 
   &:hover {
-    opacity: 1;
+    opacity: ${theme.opacity.full};
   }
 
   svg {
@@ -399,18 +399,18 @@ export const EmptyState = styled.div`
   text-align: center;
   padding: 2rem;
   color: ${theme.colors.mainFont};
-  opacity: 0.7;
+  opacity: ${theme.opacity.subtle};
 `;
 
 export const FiltersCard = styled(Card)`
-  @media (min-width: 1024px) {
+  ${media.lg} {
     grid-row: span 2;
   }
 `;
 
 export const FiltersTitle = styled.h3`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
 `;
@@ -425,8 +425,8 @@ export const FilterGroup = styled.div`
 
 export const FilterLabel = styled.label`
   display: block;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   margin-bottom: 0.5rem;
 `;
@@ -440,8 +440,8 @@ export const DateInput = styled.input`
   flex: 1;
   padding: 0.75rem 1rem;
   border: 1px solid ${theme.colors.mainFont};
-  border-radius: 20px;
-  font-size: 14px;
+ border-radius: ${theme.borderRadius['2xl']};
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   background: ${theme.colors.white};
 
@@ -452,7 +452,7 @@ export const DateInput = styled.input`
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
   }
 `;
 
@@ -466,7 +466,7 @@ export const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   cursor: pointer;
 `;
@@ -475,7 +475,7 @@ export const Checkbox = styled.input.attrs({ type: 'checkbox' })`
   width: 18px;
   height: 18px;
   border: 2px solid ${theme.colors.mainFont};
-  border-radius: 4px;
+  border-radius: ${theme.borderRadius.sm};
   cursor: pointer;
   accent-color: ${theme.colors.logoBlue};
 `;
@@ -486,8 +486,8 @@ export const FormGroup = styled.div`
 
 export const Label = styled.label`
   display: block;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   margin-bottom: 0.5rem;
 `;
@@ -496,8 +496,8 @@ export const Select = styled.select`
   width: 100%;
   padding: 0.875rem 1rem;
   border: 2px solid transparent;
-  border-radius: 12px;
-  font-size: 16px;
+  border-radius: ${theme.borderRadius.lg};
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   cursor: pointer;
@@ -533,18 +533,18 @@ export const PrimaryButton = styled.button`
   background: ${theme.colors.mainButton};
   color: ${theme.colors.mainFont};
   border: 3px solid transparent;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &:hover:not(:disabled) {
     border-color: ${theme.colors.logoBlue};
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;
@@ -558,18 +558,18 @@ export const SecondaryButton = styled.button`
   background: ${theme.colors.secondaryButton};
   color: ${theme.colors.mainFont};
   border: 3px solid transparent;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &:hover:not(:disabled) {
     border-color: ${theme.colors.logoBlue};
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;
@@ -583,18 +583,18 @@ export const OutlineButton = styled.button`
   background: transparent;
   color: ${theme.colors.mainFont};
   border: 2px solid ${theme.colors.mainFont};
-  border-radius: 16px;
-  font-size: 14px;
-  font-weight: 600;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: ${theme.transitions.all};
 
   &:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.05);
+    background: ${theme.rgba.blackHover}; 
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;
@@ -610,7 +610,7 @@ export const QRCodeContainer = styled.div`
   align-items: center;
   padding: 1.5rem;
   background: ${theme.colors.white};
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   border: 2px dashed ${theme.colors.mainFont};
   margin: 1.5rem 0;
 `;
@@ -622,9 +622,9 @@ export const QRCodeImage = styled.img`
 `;
 
 export const QRCodeLabel = styled.p`
-  font-size: 12px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.mainFont};
-  opacity: 0.7;
+  opacity: ${theme.opacity.subtle};
   text-align: center;
   margin: 0.5rem 0 0;
 `;
@@ -636,9 +636,9 @@ export const VerifactuBadge = styled.div`
   padding: 0.5rem 1rem;
   background: rgba(2, 194, 104, 0.15);
   border: 1px solid ${theme.colors.successGreen};
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.successGreen};
 
   svg {
@@ -652,7 +652,7 @@ export const LoadingSpinner = styled.div`
   height: 20px;
   border: 3px solid rgba(51, 51, 51, 0.2);
   border-top-color: ${theme.colors.mainFont};
-  border-radius: 50%;
+  border-radius: ${theme.borderRadius.full};
   animation: spin 0.8s linear infinite;
 
   @keyframes spin {
@@ -681,14 +681,14 @@ export const SuccessContainer = styled.div`
   }
 
   p {
-    font-size: 18px;
+    font-size: ${theme.typography.fontSize.lg};
     color: ${theme.colors.mainFont};
     margin: 0 0 0.5rem;
   }
 
   span {
-    font-size: 14px;
+    font-size: ${theme.typography.fontSize.base};
     color: ${theme.colors.mainFont};
-    opacity: 0.7;
+    opacity: ${theme.opacity.subtle};
   }
 `;

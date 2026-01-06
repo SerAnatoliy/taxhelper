@@ -7,17 +7,17 @@ export const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: ${theme.rgba.blackOverlayDark};
   display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: ${theme.zIndex.overlay};
   padding: 1rem;
 `;
 
 export const ModalContent = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  border-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   width: 100%;
   max-width: 500px;
@@ -37,17 +37,17 @@ export const CloseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  opacity: ${theme.opacity.subtle};
+  transition: ${theme.transitions.opacity};
 
   &:hover {
-    opacity: 1;
+    opacity: ${theme.opacity.full};
   }
 `;
 
 export const ModalTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
+  font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
   text-align: center;
@@ -59,8 +59,8 @@ export const FormGroup = styled.div`
 
 export const Label = styled.label`
   display: block;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   margin-bottom: 0.5rem;
 `;
@@ -68,17 +68,17 @@ export const Label = styled.label`
 export const Input = styled.input`
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   border: 2px solid ${({ $hasError }) => ($hasError ? theme.colors.error : 'transparent')};
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   box-sizing: border-box;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
   }
 
   &:focus {
@@ -90,14 +90,14 @@ export const Input = styled.input`
 export const Select = styled.select`
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   border: 2px solid ${({ $hasError }) => ($hasError ? theme.colors.error : 'transparent')};
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   box-sizing: border-box;
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &:focus {
     outline: none;
@@ -109,19 +109,19 @@ export const TextArea = styled.textarea`
   width: 100%;
   min-height: 80px;
   padding: 0.75rem 1rem;
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   font-family: inherit;
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   box-sizing: border-box;
   resize: vertical;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
   }
 
   &:focus {
@@ -141,7 +141,7 @@ export const FormRow = styled.div`
 `;
 
 export const ErrorText = styled.span`
-  font-size: 12px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.error};
   margin-top: 4px;
   display: block;
@@ -158,15 +158,15 @@ export const CancelButton = styled.button`
   padding: 0.75rem 1.5rem;
   background: transparent;
   border: 2px solid ${theme.colors.mainFont};
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: ${theme.borderRadius.lg};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background ${theme.transitions.default};
 
   &:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: ${theme.rgba.blackHover}; 
   }
 `;
 
@@ -174,19 +174,19 @@ export const SubmitButton = styled.button`
   padding: 0.75rem 1.5rem;
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: ${theme.borderRadius.lg};
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: ${theme.transitions.all};
 
   &:hover {
     border-color: ${theme.colors.logoBlue};
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;

@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { theme } from '../../theme';
+import { theme, media} from '../../theme';
 
 export const FooterSection = styled.footer`
   padding: 2rem 1rem;
@@ -10,7 +10,7 @@ export const FooterSection = styled.footer`
   align-items: center;
   gap: 1.5rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
@@ -24,18 +24,18 @@ export const FooterDiv = styled.div`
   align-items: center;
   gap: 8px;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     align-items: ${({ $align }) => $align || 'flex-start'};
   }
 `;
 
 export const SocialLinksText = styled.p`
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   margin: 0;
   text-align: center;
 
-  @media (min-width: 768px) {
-    font-size: 18px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.lg};
     text-align: left;
   }
 `;
@@ -54,7 +54,7 @@ export const PrivacyPolicyLinkContainer = styled.div`
   justify-content: center;
   gap: 1rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     gap: 1.5rem;
   }
 `;
@@ -62,25 +62,25 @@ export const PrivacyPolicyLinkContainer = styled.div`
 export const PrivacyPolicyLink = styled(Link)`
   color: ${theme.colors.mainFont};
   text-decoration: none;
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
 
   &:hover,
   &:focus {
     text-decoration: underline;
   }
 
-  @media (min-width: 768px) {
-    font-size: 16px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.md};
   }
 `;
 
 export const PrivacyPolicyText = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   margin: 0;
   text-align: center;
 
-  @media (min-width: 768px) {
-    font-size: 16px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.md};
     text-align: right;
   }
 `;
@@ -91,7 +91,7 @@ export const PrivacyPolicyTextContainer = styled.div`
   align-items: center;
   gap: 4px;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     align-items: flex-end;
   }
 `;

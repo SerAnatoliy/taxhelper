@@ -8,17 +8,17 @@ export const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: ${theme.rgba.blackOverlayDark};
   display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: ${theme.zIndex.overlay};
   padding: 1rem;
 `;
 
 export const ModalContent = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   width: 100%;
   max-width: 450px;
@@ -38,17 +38,17 @@ export const CloseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  opacity: ${theme.opacity.subtle};
+  transition: ${theme.transitions.opacity};
 
   &:hover {
-    opacity: 1;
+    opacity: ${theme.opacity.full};
   }
 `;
 
 export const ModalTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1.5rem;
   text-align: center;
@@ -60,8 +60,8 @@ export const FormGroup = styled.div`
 
 export const Label = styled.label`
   display: block;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   margin-bottom: 0.5rem;
 `;
@@ -70,11 +70,11 @@ export const Input = styled.input`
   width: 100%;
   height: 48px;
   padding: 0 1rem;
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   box-sizing: border-box;
 
   &:focus {
@@ -84,7 +84,7 @@ export const Input = styled.input`
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.5;
+    opacity: ${theme.opacity.overlayDark};
   }
 `;
 
@@ -92,12 +92,12 @@ export const TextArea = styled.textarea`
   width: 100%;
   min-height: 80px;
   padding: 0.75rem 1rem;
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   font-family: inherit;
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   box-sizing: border-box;
   resize: vertical;
 
@@ -108,7 +108,7 @@ export const TextArea = styled.textarea`
 
   &::placeholder {
     color: ${theme.colors.mainFont};
-    opacity: 0.5;
+    opacity: ${theme.opacity.overlayDark};
   }
 `;
 
@@ -116,11 +116,11 @@ export const Select = styled.select`
   width: 100%;
   height: 48px;
   padding: 0 1rem;
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
   background: ${theme.colors.lightGrey};
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   box-sizing: border-box;
   cursor: pointer;
 
@@ -153,7 +153,7 @@ export const SubmitButtonStyled = styled(SubmitButton)`
 `;
 
 export const ErrorText = styled.span`
-  font-size: 12px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.error};
   margin-top: 4px;
   display: block;

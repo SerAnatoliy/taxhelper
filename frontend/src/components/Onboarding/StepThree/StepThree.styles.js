@@ -17,23 +17,23 @@ export const PlaidButton = styled.button`
   padding: 1rem 2rem;
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &:hover {
     border-color: ${theme.colors.logoBlue};
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;
@@ -45,7 +45,7 @@ export const OrDivider = styled.div`
   max-width: 400px;
   margin: 1.5rem 0;
   color: ${theme.colors.mainFont};
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
 
   &::before,
   &::after {
@@ -53,7 +53,7 @@ export const OrDivider = styled.div`
     flex: 1;
     height: 1px;
     background: ${theme.colors.mainFont};
-    opacity: 0.3;
+    opacity: ${theme.opacity.overlay};
   }
 
   span {
@@ -66,13 +66,13 @@ export const UploadArea = styled.div`
   max-width: 280px;
   aspect-ratio: 1;
   border: 3px dashed ${({ $hasFile }) => ($hasFile ? theme.colors.successGreen : theme.colors.mainFont)};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color ${theme.transitions.default}, background ${theme.transitions.default};
   background: ${({ $hasFile }) => ($hasFile ? 'rgba(2, 194, 104, 0.1)' : 'transparent')};
 
   &:hover {
@@ -84,12 +84,12 @@ export const UploadArea = styled.div`
     width: 60px;
     height: 60px;
     color: ${theme.colors.mainFont};
-    opacity: 0.7;
+    opacity: ${theme.opacity.subtle};
   }
 `;
 
 export const UploadText = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   margin: 0.5rem 0 0;
   text-align: center;
@@ -99,7 +99,7 @@ export const UploadText = styled.p`
 export const SuccessMessage = styled.div`
   background: rgba(2, 194, 104, 0.1);
   border: 1px solid ${theme.colors.successGreen};
-  border-radius: 12px;
+  border-radius: ${theme.borderRadius.lg};
   padding: 1rem;
   width: 100%;
   max-width: 400px;
@@ -113,12 +113,12 @@ export const SuccessMessage = styled.div`
   p {
     color: ${theme.colors.mainFont};
     margin: 0;
-    font-size: 14px;
+    font-size: ${theme.typography.fontSize.base};
   }
 `;
 
 export const StatusText = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   text-align: center;
   margin: 0.5rem 0;

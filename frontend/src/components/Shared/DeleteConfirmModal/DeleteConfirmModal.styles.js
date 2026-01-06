@@ -8,17 +8,17 @@ export const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: ${theme.rgba.blackOverlayDark};
   display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
   align-items: center;
   justify-content: center;
-  z-index: 1100;
+  z-index: ${theme.zIndex.modal};
   padding: 1rem;
 `;
 
 export const ModalContent = styled.div`
   background: ${theme.colors.white};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   width: 100%;
   max-width: 400px;
@@ -37,31 +37,31 @@ export const CloseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  opacity: ${theme.opacity.subtle};
+  transition: ${theme.transitions.opacity};
 
   &:hover {
-    opacity: 1;
+    opacity: ${theme.opacity.full};
   }
 `;
 
 export const ModalTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
+    font-size: ${theme.typography.fontSize['2xl']};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   margin: 0 0 1rem;
 `;
 
 export const ModalMessage = styled.p`
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
-  opacity: 0.8;
+  opacity: ${theme.opacity.hover};
   margin: 0 0 1.5rem;
-  line-height: 1.5;
+  line-height: ${theme.typography.lineHeight.relaxed};
 
   strong {
     color: ${theme.colors.mainFont};
-    opacity: 1;
+    opacity: ${theme.opacity.full};
   }
 `;
 
@@ -84,7 +84,7 @@ export const CancelButton = styled(SubmitButton)`
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;
@@ -102,7 +102,7 @@ export const DeleteButton = styled(SubmitButton)`
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 `;

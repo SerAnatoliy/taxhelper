@@ -7,26 +7,26 @@ export const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: ${theme.rgba.blackOverlayDark};
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: ${theme.zIndex.toast};
   opacity: ${({ $open }) => ($open ? 1 : 0)};
   visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
-  transition: opacity 0.3s ease;
+  transition: opacity ${theme.transitions.slow}, visibility ${theme.transitions.slow};
 `;
 
 export const ModalContent = styled.div`
-  background: linear-gradient(180deg, ${theme.colors.mainColor}, ${theme.colors.mainColorYellow});
+  background:${theme.gradients.card};
   padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border-radius: ${theme.borderRadius.md};
+  box-shadow: ${theme.shadows.lg};
   max-width: 400px;
   width: 90%;
   position: relative;
   transform: ${({ $open }) => ($open ? 'scale(1)' : 'scale(0.9)')};
-  transition: transform 0.3s ease;
+  transition: transform ${theme.transitions.slow};
 `;
 
 export const CloseButton = styled.button`
@@ -35,7 +35,7 @@ export const CloseButton = styled.button`
   right: 1rem;
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: ${theme.typography.fontSize['2xl']};
   cursor: pointer;
   color: #64748b;
   &:hover {
@@ -44,7 +44,7 @@ export const CloseButton = styled.button`
 `;
 
 export const FormTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: ${theme.typography.fontSize['2xl']};
   font-weight: bold;
   margin-bottom: 1.5rem;
   text-align: center;
@@ -53,7 +53,7 @@ export const FormTitle = styled.h2`
 
 export const ErrorText = styled.p`
   color: ${theme.colors.error};
-  font-size: 0.875rem;
+  font-size: ${theme.typography.fontSize.base};
   margin-bottom: 1rem;
   text-align: center;
 `;
@@ -85,12 +85,12 @@ export const RegisterLink = styled.a`
 `;
 
 export const SessionExpiredMessage = styled.div`
-  background: rgba(218, 28, 28, 0.1);
+  background: ${theme.rgba.errorBg};
   border: 1px solid ${theme.colors.error};
   color: ${theme.colors.error};
   padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.typography.fontSize.base};
   text-align: center;
   margin-bottom: 1rem;
 `;

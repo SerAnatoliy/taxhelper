@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 
 export const OnboardingHeader = styled.header`
   display: flex;
@@ -9,7 +9,7 @@ export const OnboardingHeader = styled.header`
   width: 100%;
   box-sizing: border-box;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 1rem 2rem;
   }
 `;
@@ -17,13 +17,13 @@ export const OnboardingHeader = styled.header`
 export const LogoutButton = styled.button`
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   padding: 0.5rem 1.5rem;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
 
   &:hover {
     border-color: ${theme.colors.logoBlue};
@@ -39,7 +39,7 @@ export const ProgressSection = styled.div`
   width: 100%;
   box-sizing: border-box;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 1.5rem 2rem;
     gap: 3rem;
   }
@@ -49,59 +49,59 @@ export const StepIndicator = styled.div`
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
-  font-size: 1.1rem;
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
 
-  @media (min-width: 768px) {
+  ${media.md} {
     gap: 1rem;
-    font-size: 1.25rem;
+    font-size: ${theme.typography.fontSize.xl};
   }
 `;
 
 export const StepText = styled.span`
-  font-weight: 600;
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.logoBlue};
 `;
 
 export const StepCount = styled.span`
-  font-weight: 400;
+  font-weight: ${theme.typography.fontWeight.normal};
 `;
 
 export const SkipAllButton = styled.button`
   background: none;
   border: none;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
   padding: 0.5rem;
   text-decoration: underline;
 
   &:hover {
-    opacity: 0.7;
+    opacity: ${theme.opacity.subtle};
   }
 `;
 
 export const SkipButton = styled.button`
   background: none;
   border: none;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
   padding: 0.5rem;
   text-decoration: underline;
 
   &:hover {
-    opacity: 0.7;
+    opacity: ${theme.opacity.subtle};
   }
 `;
 
 export const SkipLink = styled.button`
   background: none;
   border: none;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
   padding: 0.5rem;
@@ -123,7 +123,7 @@ export const MainContent = styled.main`
   box-sizing: border-box;
   overflow-x: hidden;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 2rem;
   }
 `;
@@ -138,8 +138,8 @@ export const FormSection = styled.div`
 `;
 
 export const FieldLabel = styled.label`
-  font-size: 16px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   margin-bottom: 0.25rem;
 `;
@@ -156,7 +156,7 @@ export const FieldRow = styled.div`
   gap: 1rem;
   width: 100%;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     flex-direction: row;
     gap: 1.5rem;
 
@@ -171,11 +171,11 @@ export const StyledSelect = styled.select`
   width: 100%;
   height: 52px;
   padding: 0 2.5rem 0 1rem;
-  font-size: 16px;
+  font-size: ${theme.typography.fontSize.md};
   color: ${theme.colors.mainFont};
   background: ${theme.colors.white};
   border: 2px solid ${({ $hasError }) => ($hasError ? theme.colors.error : 'transparent')};
-  border-radius: 16px;
+  order-radius: ${theme.borderRadius.xl};
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -196,7 +196,7 @@ export const ButtonContainer = styled.div`
   width: 100%;
   margin-top: 1.5rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     flex-direction: row;
     justify-content: center;
     gap: 1.5rem;
@@ -208,19 +208,19 @@ export const SecondaryButton = styled.button`
   height: 50px;
   background: rgba(255, 255, 255, 0.5);
   border: 2px solid transparent;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
   box-sizing: border-box;
 
   &:hover {
     border-color: ${theme.colors.logoBlue};
   }
 
-  @media (min-width: 768px) {
+  ${media.md} {
     width: 180px;
   }
 `;
@@ -230,12 +230,12 @@ export const PrimaryButton = styled.button`
   height: 50px;
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
+  order-radius: ${theme.borderRadius.xl};
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: ${theme.transitions.button};;
   box-sizing: border-box;
 
   &:hover {
@@ -243,17 +243,17 @@ export const PrimaryButton = styled.button`
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: ${theme.opacity.muted};
     cursor: not-allowed;
   }
 
-  @media (min-width: 768px) {
+  ${media.md} {
     width: 180px;
   }
 `;
 
 export const ErrorText = styled.span`
-  font-size: 12px;
+  font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.error};
   margin-top: 4px;
 `;

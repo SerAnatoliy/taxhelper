@@ -17,9 +17,9 @@ export const StyledInput = styled.input`
 
   background: ${theme.colors.inputBg};
   border: 1px solid ;
-  border-radius: 8px;
+  border-radius: ${theme.borderRadius.md};
 
-  transition: border 0.2s ease;
+  transition: border ${theme.transitions.default};
 
   &::placeholder {
     color: ${theme.colors.textMuted};

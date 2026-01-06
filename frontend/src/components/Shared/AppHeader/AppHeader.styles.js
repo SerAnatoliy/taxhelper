@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../../theme';
+import { theme, media } from '../../../theme';
 
 export const HeaderContainer = styled.header`
   display: flex;
@@ -9,7 +9,7 @@ export const HeaderContainer = styled.header`
   width: 100%;
   box-sizing: border-box;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 1rem 2rem;
   }
 `;
@@ -22,12 +22,12 @@ export const HeaderLeft = styled.div`
 `;
 
 export const LogoText = styled.span`
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.mainFont};
   display: none;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     display: block;
   }
 `;
@@ -61,12 +61,12 @@ export const UserInfo = styled.div`
 `;
 
 export const UserName = styled.span`
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   color: ${theme.colors.mainFont};
   display: none;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     display: block;
   }
 `;
@@ -74,7 +74,7 @@ export const UserName = styled.span`
 export const UserAvatar = styled.div`
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+ border-radius: ${theme.borderRadius.full};
   background: ${theme.colors.white};
   border: 2px solid ${theme.colors.mainFont};
   display: flex;
@@ -102,6 +102,6 @@ export const MenuButton = styled.button`
     width: 24px;
     height: 3px;
     background: ${theme.colors.mainFont};
-    border-radius: 2px;
+    border-radius: ${theme.borderRadius.sm};
   }
 `;

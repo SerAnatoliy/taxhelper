@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 
 
 export const MainContent = styled.main`
@@ -14,12 +14,12 @@ export const MainContent = styled.main`
 
 export const ErrorCode = styled.h1`
   font-size: 120px;
-  font-weight: 700;
+  font-weight: ${theme.typography.fontWeight.bold};
   color: ${theme.colors.logoBlue};
   margin: 0;
-  line-height: 1;
+  line-height: ${theme.typography.lineHeight.regular};
 
-  @media (min-width: 768px) {
+  ${media.md} {
     font-size: 180px;
   }
 `;
@@ -28,7 +28,7 @@ export const Illustration = styled.div`
   font-size: 80px;
   margin: 1rem 0 2rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     font-size: 100px;
   }
 `;
@@ -39,7 +39,7 @@ export const ButtonContainer = styled.div`
   gap: 1rem;
   margin-top: 2rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     flex-direction: row;
     gap: 1.5rem;
   }

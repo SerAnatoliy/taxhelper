@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../../theme';
+import { theme, media } from '../../theme';
 
 export const MainContent = styled.main`
   flex: 1;
@@ -8,7 +8,7 @@ export const MainContent = styled.main`
   align-items: center;
   padding: 3rem 1rem;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 4rem 2rem;
   }
 `;
@@ -33,14 +33,14 @@ export const EmailFormContainer = styled.div`
 `;
 
 export const TrialText = styled.p`
-  font-size: 14px;
+  font-size: ${theme.typography.fontSize.base};
   color: ${theme.colors.mainFont};
   margin: 0;
   align-self: flex-start;
   font-style: italic;
 
-  @media (min-width: 768px) {
-    font-size: 16px;
+  ${media.md} {
+    font-size: ${theme.typography.fontSize.md};
   }
 `;
 
@@ -70,13 +70,13 @@ export const FeatureItem = styled.div`
 `;
 
 export const FeatureTitle = styled.h3`
-  font-size: 20px;
-  font-weight: 600;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
   margin: 1rem 0 0 0;
 
-  @media (min-width: 768px) {
-    font-size: 24px;
+  ${media.md} {
+      font-size: ${theme.typography.fontSize['2xl']};
   }
 `;
 
@@ -88,7 +88,7 @@ export const PricingSection = styled.section`
   flex-direction: column;
   align-items: center;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     padding: 5rem 2rem;
   }
 `;
@@ -99,7 +99,7 @@ export const PricingGrid = styled.div`
   gap: 2rem;
   width: 100%;
 
-  @media (min-width: 768px) {
+  ${media.md} {
     grid-template-columns: repeat(3, 1fr);
   }
 `;
@@ -107,22 +107,22 @@ export const PricingGrid = styled.div`
 export const PricingCard = styled.div`
   background: ${theme.colors.white};
   padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: ${theme.borderRadius.md};
+  box-shadow: ${theme.shadows.sm};
   text-align: center;
   border-top: 4px solid ${({ $highlight }) => ($highlight ? theme.colors.logoBlue : '#e5e7eb')};
   color: ${theme.colors.mainFont};
 `;
 
 export const PricingCardTitle = styled.h3`
-  font-size: 1.5rem;
+  font-size: ${theme.typography.fontSize['2xl']};
   font-weight: bold;
   margin: 0 0 0.5rem 0;
   color: ${theme.colors.mainFont};
 `;
 
 export const PricingPrice = styled.p`
-  font-size: 2rem;
+  font-size: ${theme.typography.fontSize['4xl']};
   font-weight: bold;
   margin: 0 0 2rem 0;
   color: ${theme.colors.mainFont};
@@ -149,14 +149,14 @@ export const SessionExpiredBanner = styled.div`
   color: ${theme.colors.white};
   padding: 0.75rem 1rem;
   text-align: center;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${theme.typography.fontSize.base};
+  font-weight: ${theme.typography.fontWeight.medium};
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 3000;
-  animation: slideDown 0.3s ease;
+  z-index: ${theme.zIndex.extreme};
+  animation: slideDown ${theme.transitions.slow};
 
   @keyframes slideDown {
     from {

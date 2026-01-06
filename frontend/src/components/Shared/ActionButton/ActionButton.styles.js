@@ -12,16 +12,16 @@ export const BaseButtonLink = styled(Link)`
   padding: ${({ padding }) => padding || '0.5rem 1.25rem'};
 
   font-size: ${({ fontSize }) => fontSize || '1rem'};
-  font-weight: 600;
+  font-weight: ${theme.typography.fontWeight.semibold};
 
-  border-radius: 16px;
+  border-radius: ${theme.borderRadius.xl};
   border: 3px solid transparent;
   background: ${theme.colors.mainButton};
   color: ${theme.colors.mainFont};
   text-decoration: none;
   cursor: pointer;
 
-  transition: opacity 0.2s ease;
+  transition: ${theme.transitions.opacity};
 
   &:hover,
   &:focus {
@@ -39,16 +39,16 @@ export const BaseButton = styled.button`
   padding: ${({ padding }) => padding || '0.5rem 1.25rem'};
 
   font-size: ${({ fontSize }) => fontSize || '1rem'};
-  font-weight: 600;
+  font-weight: ${theme.typography.fontWeight.semibold};
 
-  border-radius: 16px;
+  border-radius: ${theme.borderRadius.xl};
   border: 3px solid transparent;
   background: ${theme.colors.mainButton};
   color: ${theme.colors.mainFont};
   text-decoration: none;
   cursor: pointer;
 
-  transition: opacity 0.2s ease;
+  transition: ${theme.transitions.opacity};
 
   &:hover,
   &:focus {
