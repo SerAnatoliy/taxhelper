@@ -11,9 +11,13 @@ import json
 import uuid
 import base64
 import asyncio
-import qrcode
-from io import BytesIO
 import logging
+from verifactu import (
+    VerifactuService,
+    VerifactuRecordData,
+    VerifactuRecordType,
+    VerifactuEventType,
+)
 
 from database import get_db, User, Transaction, Report, ReportRecord, Invoice
 from auth import get_current_user
@@ -213,66 +217,6 @@ def get_period_options(
     return periods
 
 
-class VerifactuService:
-    
-    @staticmethod
-    def generate_hash(data: dict, previous_hash: Optional[str] = None) -> str:
-        hash_input = "|".join([
-            data.get("nif", ""),
-            data.get("invoice_number", ""),
-            data.get("invoice_date", ""),
-            str(data.get("total_amount", 0)),
-            str(data.get("vat_amount", 0)),
-            previous_hash or "GENESIS"
-        ])
-        return hashlib.sha256(hash_input.encode('utf-8')).hexdigest()
-    
-    @staticmethod
-    def generate_qr_code(report_data: dict) -> str:
-        qr_url = "https://www2.agenciatributaria.gob.es/wlpl/BURT-JDIT/VerificacionFactura"
-        qr_params = {
-            "nif": report_data.get("nif", ""),
-            "num": report_data.get("invoice_number", ""),
-            "fecha": report_data.get("date", ""),
-            "importe": str(report_data.get("total", 0)),
-            "huella": report_data.get("hash", "")[:12]
-        }
-        qr_content = f"{qr_url}?{'&'.join(f'{k}={v}' for k, v in qr_params.items())}"
-        
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(qr_content)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-        return base64.b64encode(buffer.getvalue()).decode('utf-8')
-    
-    @staticmethod
-    def create_xml_record(record: VerifactuRecord) -> str:
-        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<sif:SuministroInformacion xmlns:sif="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SusFactura.xsd">
-    <sif:Cabecera>
-        <sif:ObligadoEmision>
-            <sif:NombreRazon>{record.nif_issuer}</sif:NombreRazon>
-            <sif:NIF>{record.nif_issuer}</sif:NIF>
-        </sif:ObligadoEmision>
-    </sif:Cabecera>
-    <sif:RegistroFactura>
-        <sif:IDFactura>
-            <sif:IDEmisorFactura>{record.nif_issuer}</sif:IDEmisorFactura>
-            <sif:NumSerieFactura>{record.invoice_number}</sif:NumSerieFactura>
-            <sif:FechaExpedicionFactura>{record.invoice_date.isoformat()}</sif:FechaExpedicionFactura>
-        </sif:IDFactura>
-        <sif:ImporteTotal>{record.total_amount}</sif:ImporteTotal>
-        <sif:Huella>{record.hash_chain}</sif:Huella>
-        <sif:HuellaAnterior>{record.previous_hash or 'GENESIS'}</sif:HuellaAnterior>
-        <sif:FechaHoraHusoGenRegistro>{record.timestamp.isoformat()}</sif:FechaHoraHusoGenRegistro>
-    </sif:RegistroFactura>
-</sif:SuministroInformacion>"""
-        return xml
-
-
 def get_period_dates(period: str) -> tuple[date, date]:
     parts = period.split("_")
     year = int(parts[-1])
@@ -449,16 +393,20 @@ async def download_report(
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
-    verifactu_service = VerifactuService()
     calc_data = json.loads(report.calculation_data) if report.calculation_data else {}
     
-    qr_data = {
-        "nif": current_user.nif or "PENDING",
-        "invoice_number": f"REP-{report.id}",
-        "date": report.submit_date.isoformat() if report.submit_date else datetime.now().date().isoformat(),
-        "total": float(report.total_tax or 0),
-        "hash": report.verifactu_hash or "PENDING"
-    }
+    record_data = VerifactuRecordData(
+        nif=current_user.nif or "PENDING",
+        document_number=f"REP-{report.id}",
+        document_date=report.submit_date or datetime.now().date(),
+        total_amount=Decimal(str(report.total_tax or 0)),
+        record_type=VerifactuRecordType.REPORT
+    )
+    
+    qr_result = VerifactuService.generate_qr_code(
+        record_data, 
+        report.verifactu_hash or "PENDING"
+    )
     
     return {
         "report_id": report.id,
@@ -469,9 +417,9 @@ async def download_report(
         "deadline": report.deadline.isoformat(),
         "submit_date": report.submit_date.isoformat() if report.submit_date else None,
         "calculation": calc_data,
-        "qr_code_base64": verifactu_service.generate_qr_code(qr_data),
+        "qr_code_base64": qr_result.qr_base64,
         "verifactu_hash": report.verifactu_hash,
-        "legal_text": "Factura verificable en la sede electrónica de la AEAT - VERI*FACTU",
+        "legal_text": VerifactuService.get_legal_text("es"),
         "download_url": f"/api/reports/pdf/{report.id}"
     }
 
@@ -635,7 +583,6 @@ async def wizard_step_two(
         total_tax_due=total_tax_due,
         deductions_applied=deductions
     )
-
 @router.post("/wizard/step3", response_model=ReportPreview)
 async def wizard_step_three(
     data: StepThreeData,
@@ -652,32 +599,25 @@ async def wizard_step_three(
     
     calc_data = json.loads(report.calculation_data) if report.calculation_data else {}
     
-    verifactu_service = VerifactuService()
-    
     last_record = db.query(ReportRecord).filter(
         ReportRecord.user_id == current_user.id
     ).order_by(desc(ReportRecord.created_at)).first()
     
     previous_hash = last_record.hash_chain if last_record else None
     
-    hash_data = {
-        "nif": current_user.nif or current_user.email,
-        "invoice_number": f"REP-{report.id}-{report.period}",
-        "invoice_date": datetime.now().date().isoformat(),
-        "total_amount": float(report.total_tax or 0),
-        "vat_amount": float(calc_data.get("vat_collected", 0))
-    }
+    record_data = VerifactuRecordData(
+        nif=current_user.nif or current_user.email,
+        document_number=f"REP-{report.id}-{report.period}",
+        document_date=datetime.now().date(),
+        total_amount=report.total_tax or Decimal("0.00"),
+        vat_amount=Decimal(calc_data.get("vat_collected", "0")),
+        vat_rate=21.0,
+        record_type=VerifactuRecordType.REPORT
+    )
     
-    current_hash = verifactu_service.generate_hash(hash_data, previous_hash)
+    hash_result = VerifactuService.generate_hash(record_data, previous_hash)
     
-    qr_data = {
-        "nif": current_user.nif or "PENDING",
-        "invoice_number": f"REP-{report.id}",
-        "date": datetime.now().date().isoformat(),
-        "total": float(report.total_tax or 0),
-        "hash": current_hash
-    }
-    qr_base64 = verifactu_service.generate_qr_code(qr_data)
+    qr_result = VerifactuService.generate_qr_code(record_data, hash_result.hash_value)
     
     verifactu_record = VerifactuRecord(
         record_id=str(uuid.uuid4()),
@@ -687,13 +627,13 @@ async def wizard_step_three(
         total_amount=report.total_tax or Decimal("0.00"),
         vat_amount=Decimal(calc_data.get("vat_collected", "0")),
         vat_rate=21.0,
-        hash_chain=current_hash,
+        hash_chain=hash_result.hash_value,
         previous_hash=previous_hash,
         timestamp=datetime.utcnow(),
-        qr_code_data=qr_base64
+        qr_code_data=qr_result.qr_base64
     )
     
-    report.verifactu_hash = current_hash
+    report.verifactu_hash = hash_result.hash_value
     report.status = ReportStatus.PENDING.value
     db.commit()
     
@@ -713,12 +653,11 @@ async def wizard_step_three(
         status=ReportStatus(report.status),
         calculation=calculation,
         verifactu_records=[verifactu_record],
-        qr_code_base64=qr_base64,
+        qr_code_base64=qr_result.qr_base64,
         created_at=report.created_at,
         deadline=report.deadline,
         legal_reference=get_legal_reference(ReportType(report.report_type))
     )
-
 @router.post("/submit")
 async def submit_report(
     data: SubmitRequest,
@@ -737,42 +676,43 @@ async def submit_report(
     if report.status == ReportStatus.SUBMITTED.value:
         raise HTTPException(status_code=400, detail="Report already submitted")
     
-    verifactu_service = VerifactuService()
     calc_data = json.loads(report.calculation_data) if report.calculation_data else {}
     
-    record = VerifactuRecord(
-        record_id=str(uuid.uuid4()),
-        nif_issuer=current_user.nif or "PENDING",
-        invoice_number=f"REP-{report.id}-{report.period}",
-        invoice_date=datetime.now().date(),
+    record_data = VerifactuRecordData(
+        nif=current_user.nif or "PENDING",
+        document_number=f"REP-{report.id}-{report.period}",
+        document_date=datetime.now().date(),
         total_amount=report.total_tax or Decimal("0.00"),
         vat_amount=Decimal(calc_data.get("vat_collected", "0")),
         vat_rate=21.0,
-        hash_chain=report.verifactu_hash or "PENDING",
-        previous_hash=None,
-        timestamp=datetime.utcnow(),
-        qr_code_data=""
+        record_type=VerifactuRecordType.REPORT
     )
     
-    xml_record = verifactu_service.create_xml_record(record)
+    hash_result = VerifactuService.generate_hash(record_data, None)
+    
+    xml_result = VerifactuService.create_xml_record(
+        record_data,
+        hash_result,
+        str(uuid.uuid4())
+    )
     
     db_record = ReportRecord(
         user_id=current_user.id,
         report_id=report.id,
         record_type="submission",
         hash_chain=report.verifactu_hash,
-        xml_content=xml_record,
+        xml_content=xml_result.xml_content,
         created_at=datetime.utcnow()
     )
     db.add(db_record)
     
     report.status = ReportStatus.SUBMITTED.value
     report.submit_date = datetime.now().date()
-    report.xml_submission = xml_record
+    report.xml_submission = xml_result.xml_content
     
     db.commit()
     
-    background_tasks.add_task(send_to_aeat, report.id, xml_record)
+    background_tasks.add_task(send_to_aeat, report.id, xml_result.xml_content)
     
     return {
         "success": True,

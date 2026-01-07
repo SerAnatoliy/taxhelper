@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -8,16 +8,24 @@ from decimal import Decimal
 import tempfile
 import io
 import os
+import base64
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 
 from database import get_db, User, Invoice, InvoiceItem
 from auth import get_current_user
+
+from verifactu import (
+    VerifactuService,
+    VerifactuRecordData,
+    VerifactuRecordType,
+    VerifactuEventType,
+)
 
 try:
     from docstrange import DocumentExtractor
@@ -73,6 +81,8 @@ class InvoiceResponse(BaseModel):
     total: float
     status: str
     created_at: datetime
+    verifactu_hash: Optional[str] = None
+    verifactu_submitted: bool = False
     
     class Config:
         from_attributes = True
@@ -104,8 +114,24 @@ class InvoiceDetailResponse(BaseModel):
     items: List[InvoiceItemResponse]
     created_at: datetime
     
+    verifactu_hash: Optional[str] = None
+    verifactu_submitted: bool = False
+    qr_code_base64: Optional[str] = None
+    verifactu_legal_text: Optional[str] = None
+    
     class Config:
         from_attributes = True
+        
+class VerifactuEventResponse(BaseModel):
+    id: int
+    event_type: str
+    event_code: Optional[str]
+    description: Optional[str]
+    hash_before: Optional[str]
+    hash_after: str
+    created_at: datetime
+    ip_address: Optional[str]
+
         
 class UploadIncomeResponse(BaseModel):
     invoice_id: int
@@ -225,12 +251,13 @@ def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.Bytes
         rightMargin=20*mm,
         leftMargin=20*mm,
         topMargin=20*mm,
-        bottomMargin=20*mm
+        bottomMargin=25*mm  
     )
     
     styles = getSampleStyleSheet()
     elements = []
     
+    # === STYLES ===
     title_style = ParagraphStyle(
         'InvoiceTitle',
         parent=styles['Heading1'],
@@ -264,6 +291,26 @@ def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.Bytes
         leading=12
     )
     
+    # VERIFACTU badge style
+    verifactu_style = ParagraphStyle(
+        'VerifactuStyle',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.HexColor('#02B0C2'),
+        leading=10,
+        alignment=TA_CENTER
+    )
+    
+    verifactu_legal_style = ParagraphStyle(
+        'VerifactuLegalStyle',
+        parent=styles['Normal'],
+        fontSize=7,
+        textColor=colors.HexColor('#666666'),
+        leading=9,
+        alignment=TA_CENTER
+    )
+    
+    # === HEADER ===
     header_data = [
         [
             Paragraph(f"<b>{invoice.business_name}</b>", heading_style),
@@ -293,22 +340,12 @@ def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.Bytes
     header_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-        ('TOPPADDING', (0, 0), (-1, -1), 2),
     ]))
     elements.append(header_table)
-    
-    elements.append(Spacer(1, 10))
-    divider_table = Table([['']], colWidths=[170*mm])
-    divider_table.setStyle(TableStyle([
-        ('LINEBELOW', (0, 0), (-1, -1), 2, colors.HexColor('#0162BB')),
-    ]))
-    elements.append(divider_table)
     elements.append(Spacer(1, 15))
     
-    elements.append(Paragraph("<b>BILL TO</b>", ParagraphStyle(
-        'BillTo', parent=small_style, textColor=colors.HexColor('#666666')
-    )))
+    # === CLIENT INFO ===
+    elements.append(Paragraph("<b>BILL TO:</b>", heading_style))
     elements.append(Paragraph(f"<b>{invoice.client_name}</b>", normal_style))
     if invoice.client_address:
         elements.append(Paragraph(invoice.client_address, small_style))
@@ -316,44 +353,36 @@ def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.Bytes
         elements.append(Paragraph(invoice.client_contact, small_style))
     elements.append(Spacer(1, 15))
     
-    table_data = [['Description', 'Qty', 'Unit Price', 'Amount']]
-    
+    # === ITEMS TABLE ===
+    items_data = [['Description', 'Qty', 'Unit Price', 'Amount']]
     for item in items:
-        qty = float(item.quantity)
-        unit_price = float(item.unit_price)
-        amount = qty * unit_price
-        table_data.append([
+        items_data.append([
             item.description,
-            str(int(qty) if qty == int(qty) else qty),
-            f"€{unit_price:,.2f}",
-            f"€{amount:,.2f}"
+            f"{float(item.quantity):.0f}" if float(item.quantity) == int(item.quantity) else f"{float(item.quantity):.2f}",
+            f"€{float(item.unit_price):,.2f}",
+            f"€{float(item.amount):,.2f}"
         ])
     
-    items_table = Table(table_data, colWidths=[85*mm, 25*mm, 30*mm, 30*mm])
+    items_table = Table(items_data, colWidths=[85*mm, 20*mm, 30*mm, 35*mm])
     items_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0162BB')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f5f5f5')),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-        ('TOPPADDING', (0, 0), (-1, 0), 8),
-
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#333333')),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('TOPPADDING', (0, 0), (-1, 0), 10),
         ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
         ('TOPPADDING', (0, 1), (-1, -1), 6),
-
         ('ALIGN', (1, 0), (1, -1), 'CENTER'),
         ('ALIGN', (2, 0), (-1, -1), 'RIGHT'),
-
         ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor('#e5e7eb')),
         ('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#e5e7eb')),
-
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
     ]))
     elements.append(items_table)
     elements.append(Spacer(1, 15))
     
+    # === TOTAL ===
     total = sum(float(item.quantity) * float(item.unit_price) for item in items)
     total_data = [[f"Total: €{total:,.2f}"]]
     total_table = Table(total_data, colWidths=[60*mm])
@@ -367,7 +396,6 @@ def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.Bytes
         ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
         ('LEFTPADDING', (0, 0), (-1, -1), 15),
         ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-        ('ROUNDEDCORNERS', [5, 5, 5, 5]),
     ]))
     
     total_wrapper = Table([[total_table]], colWidths=[170*mm])
@@ -377,6 +405,7 @@ def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.Bytes
     elements.append(total_wrapper)
     elements.append(Spacer(1, 20))
     
+    # === FOOTER DIVIDER ===
     footer_divider = Table([['']], colWidths=[170*mm])
     footer_divider.setStyle(TableStyle([
         ('LINEABOVE', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
@@ -384,6 +413,7 @@ def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.Bytes
     elements.append(footer_divider)
     elements.append(Spacer(1, 10))
     
+    # === SERVICE & PAYMENT INFO ===
     if invoice.service_description:
         elements.append(Paragraph(f"<b>Service:</b> {invoice.service_description}", small_style))
     if invoice.payment_terms:
@@ -393,19 +423,87 @@ def generate_invoice_pdf(invoice: Invoice, items: List[InvoiceItem]) -> io.Bytes
         small_style
     ))
     
+    # VERIFACTU SECTION
+    if hasattr(invoice, 'qr_code_data') and invoice.qr_code_data:
+        elements.append(Spacer(1, 20))
+        
+        verifactu_divider = Table([['']], colWidths=[170*mm])
+        verifactu_divider.setStyle(TableStyle([
+            ('LINEABOVE', (0, 0), (-1, -1), 1, colors.HexColor('#02B0C2')),
+        ]))
+        elements.append(verifactu_divider)
+        elements.append(Spacer(1, 10))
+        
+        try:
+            qr_image_data = base64.b64decode(invoice.qr_code_data)
+            qr_buffer = io.BytesIO(qr_image_data)
+            qr_image = Image(qr_buffer, width=25*mm, height=25*mm)
+            
+            verifactu_badge = Paragraph(
+                "<b>VERI*FACTU</b>",
+                verifactu_style
+            )
+            
+            verifactu_text = Paragraph(
+                VerifactuService.get_legal_text("es"),
+                verifactu_legal_style
+            )
+            
+            hash_display = ""
+            if hasattr(invoice, 'verifactu_hash') and invoice.verifactu_hash:
+                hash_display = f"Huella: {invoice.verifactu_hash[:16]}..."
+            
+            hash_text = Paragraph(hash_display, verifactu_legal_style)
+            
+            verifactu_content = Table([
+                [
+                    qr_image,
+                    Table([
+                        [verifactu_badge],
+                        [verifactu_text],
+                        [hash_text],
+                    ], colWidths=[140*mm])
+                ]
+            ], colWidths=[30*mm, 140*mm])
+            
+            verifactu_content.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'LEFT'),
+                ('LEFTPADDING', (1, 0), (1, 0), 10),
+            ]))
+            
+            verifactu_box = Table([[verifactu_content]], colWidths=[170*mm])
+            verifactu_box.setStyle(TableStyle([
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#02B0C2')),
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f0fafb')),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            
+            elements.append(verifactu_box)
+            
+        except Exception as e:
+            elements.append(Paragraph(
+                f"<b>VERI*FACTU Compliant</b> - {VerifactuService.get_legal_text('es')}",
+                verifactu_style
+            ))
+    
     doc.build(elements)
     buffer.seek(0)
     return buffer
 
 
-
 @router.post("/", response_model=InvoiceResponse)
 async def create_invoice(
     invoice_data: InvoiceCreate,
+    request: Request,  
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    
+
     existing = db.query(Invoice).filter(
         Invoice.user_id == current_user.id,
         Invoice.invoice_number == invoice_data.invoice_number
@@ -417,7 +515,31 @@ async def create_invoice(
             detail=f"Invoice number {invoice_data.invoice_number} already exists"
         )
     
+
     total = sum(item.quantity * item.unit_price for item in invoice_data.items)
+    vat_amount = total * Decimal("0.21")  
+    
+    last_invoice = db.query(Invoice).filter(
+        Invoice.user_id == current_user.id,
+        Invoice.verifactu_hash.isnot(None)
+    ).order_by(desc(Invoice.created_at)).first()
+    
+    previous_hash = last_invoice.verifactu_hash if last_invoice else None
+    
+    record_data = VerifactuRecordData(
+        nif=current_user.nif or current_user.email,  
+        document_number=invoice_data.invoice_number,
+        document_date=invoice_data.invoice_date.date() if isinstance(invoice_data.invoice_date, datetime) else invoice_data.invoice_date,
+        total_amount=Decimal(str(total)),
+        vat_amount=vat_amount,
+        vat_rate=21.0,
+        record_type=VerifactuRecordType.INVOICE_ISSUED,
+        recipient_name=invoice_data.client_name,
+    )
+    
+    hash_result = VerifactuService.generate_hash(record_data, previous_hash)
+    
+    qr_result = VerifactuService.generate_qr_code(record_data, hash_result.hash_value)
     
     db_invoice = Invoice(
         user_id=current_user.id,
@@ -436,7 +558,13 @@ async def create_invoice(
         service_description=invoice_data.service_description,
         payment_terms=invoice_data.payment_terms,
         total=total,
-        status="created"
+        status="created",
+        verifactu_hash=hash_result.hash_value,
+        previous_hash=previous_hash,
+        qr_code_data=qr_result.qr_base64,
+        verifactu_timestamp=hash_result.timestamp,
+        verifactu_record_type=VerifactuRecordType.INVOICE_ISSUED.value,
+        verifactu_submitted=False,
     )
     
     db.add(db_invoice)
@@ -453,6 +581,28 @@ async def create_invoice(
         )
         db.add(db_item)
     
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent", "")[:500]
+    
+    event = InvoiceVerifactuEvent(
+        user_id=current_user.id,
+        invoice_id=db_invoice.id,
+        event_type=VerifactuEventType.INVOICE_CREATED.value,
+        event_code="ALTA",
+        description=f"Invoice {invoice_data.invoice_number} created",
+        hash_before=None, 
+        hash_after=hash_result.hash_value,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        event_data={
+            "invoice_number": invoice_data.invoice_number,
+            "total": float(total),
+            "client_name": invoice_data.client_name,
+            "previous_chain_hash": previous_hash,
+        }
+    )
+    db.add(event)
+    
     db.commit()
     
     return InvoiceResponse(
@@ -463,7 +613,9 @@ async def create_invoice(
         client_name=db_invoice.client_name,
         total=float(db_invoice.total),
         status=db_invoice.status,
-        created_at=db_invoice.created_at
+        created_at=db_invoice.created_at,
+        verifactu_hash=db_invoice.verifactu_hash,
+        verifactu_submitted=db_invoice.verifactu_submitted,
     )
 
 
@@ -487,7 +639,9 @@ async def get_invoices(
             client_name=inv.client_name,
             total=float(inv.total),
             status=inv.status,
-            created_at=inv.created_at
+            created_at=inv.created_at,
+            verifactu_hash=inv.verifactu_hash,
+            verifactu_submitted=inv.verifactu_submitted or False,
         )
         for inv in invoices
     ]
@@ -531,13 +685,17 @@ async def get_invoice(
             InvoiceItemResponse(
                 id=item.id,
                 description=item.description,
-                quantity=item.quantity,
+                quantity=float(item.quantity),
                 unit_price=float(item.unit_price),
                 amount=float(item.amount)
             )
             for item in items
         ],
-        created_at=invoice.created_at
+        created_at=invoice.created_at,
+        verifactu_hash=invoice.verifactu_hash,
+        verifactu_submitted=invoice.verifactu_submitted or False,
+        qr_code_base64=invoice.qr_code_data,
+        verifactu_legal_text=VerifactuService.get_legal_text("es") if invoice.verifactu_hash else None,
     )
 
 
@@ -590,3 +748,36 @@ async def delete_invoice(
     db.commit()
     
     return {"message": "Invoice deleted successfully"}
+
+
+@router.get("/{invoice_id}/verifactu-events", response_model=List[VerifactuEventResponse])
+async def get_invoice_verifactu_events(
+    invoice_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    invoice = db.query(Invoice).filter(
+        Invoice.id == invoice_id,
+        Invoice.user_id == current_user.id
+    ).first()
+    
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    events = db.query(InvoiceVerifactuEvent).filter(
+        InvoiceVerifactuEvent.invoice_id == invoice_id
+    ).order_by(InvoiceVerifactuEvent.created_at.asc()).all()
+    
+    return [
+        VerifactuEventResponse(
+            id=e.id,
+            event_type=e.event_type,
+            event_code=e.event_code,
+            description=e.description,
+            hash_before=e.hash_before,
+            hash_after=e.hash_after,
+            created_at=e.created_at,
+            ip_address=e.ip_address,
+        )
+        for e in events
+    ]

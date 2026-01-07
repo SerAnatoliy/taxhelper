@@ -54,6 +54,7 @@ class User(Base):
     invoices = relationship("Invoice", back_populates="user")
     reports = relationship("Report", back_populates="user")
     report_records = relationship("ReportRecord", back_populates="user")
+    invoice_verifactu_events = relationship("InvoiceVerifactuEvent", back_populates="user")
 
 
 class BankAccount(Base):
@@ -157,6 +158,23 @@ class Invoice(Base):
     is_deleted = Column(Boolean, default=False, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
     
+    verifactu_hash = Column(String(64), nullable=True, index=True)
+    previous_hash = Column(String(64), nullable=True, index=True)
+    
+    qr_code_data = Column(Text, nullable=True)
+    
+    verifactu_timestamp = Column(DateTime, nullable=True)
+    
+    verifactu_record_type = Column(String(10), default="F1")
+    
+    verifactu_submitted = Column(Boolean, default=False, nullable=False)
+    
+    aeat_response_code = Column(String(20), nullable=True)
+    aeat_csv = Column(String(30), nullable=True)  
+    
+    verifactu_xml = Column(Text, nullable=True)
+    
+    verifactu_events = relationship("InvoiceVerifactuEvent", back_populates="invoice", cascade="all, delete-orphan")
     user = relationship("User", back_populates="invoices")
     items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
 
@@ -241,6 +259,34 @@ class ReportRecord(Base):
     # Relationships
     user = relationship("User", back_populates="report_records")
     report = relationship("Report", back_populates="records")
+    
+    
+class InvoiceVerifactuEvent(Base):
+    __tablename__ = "invoice_verifactu_events"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    invoice_id = Column(Integer, ForeignKey("invoices.id"), nullable=False, index=True)
+    
+
+    event_type = Column(String(50), nullable=False)  
+    event_code = Column(String(20), nullable=True)
+    description = Column(Text, nullable=True)
+    
+
+    hash_before = Column(String(64), nullable=True)  
+    hash_after = Column(String(64), nullable=False)   
+    
+
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    event_data = Column(JSON, nullable=True)
+    
+    user = relationship("User", back_populates="invoice_verifactu_events")
+    invoice = relationship("Invoice", back_populates="verifactu_events")
 
 
 class VerifactuEvent(Base):
@@ -265,7 +311,7 @@ class VerifactuEvent(Base):
     
     created_at = Column(DateTime, default=datetime.utcnow)
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()
