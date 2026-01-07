@@ -66,7 +66,7 @@ export const ContentGrid = styled.div`
 
 export const FiltersCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   overflow: hidden;
 
@@ -78,7 +78,7 @@ export const FiltersCard = styled.div`
 
 export const IncomeListCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   overflow-x: auto;
 
@@ -98,7 +98,7 @@ export const IncomeListTitle = styled.h2`
 
 export const SummaryCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 
   ${media.lg} {

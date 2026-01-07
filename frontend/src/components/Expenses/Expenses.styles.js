@@ -40,7 +40,7 @@ export const ContentGrid = styled.div`
 // Welcome Card
 export const WelcomeCard = styled.div`
   background: rgba(231, 248, 255, 0.8);
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   text-align: center;
 
@@ -103,7 +103,7 @@ export const ActionBtn = styled.button`
 // Upload Card
 export const UploadCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -180,7 +180,7 @@ export const ParsedCount = styled.p`
 // Filters Card
 export const FiltersCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   overflow: hidden;
 
@@ -329,7 +329,7 @@ export const ApplyButtonStyled = styled.button`
 // Expenses List Card
 export const ExpensesListCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   overflow-x: auto;
 

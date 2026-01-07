@@ -3,7 +3,7 @@ import { theme, media } from '../../theme';
 
 export const ChatContainer = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -70,7 +70,7 @@ export const MessagesContainer = styled.div`
 export const MessageBubble = styled.div`
   max-width: 85%;
   padding: 0.75rem 1rem;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.base};
   line-height: ${theme.typography.lineHeight.relaxed};
   
@@ -180,7 +180,7 @@ export const TypingIndicator = styled.div`
   gap: 4px;
   padding: 0.75rem 1rem;
   background: ${theme.colors.lightGrey};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   border-bottom-left-radius: 4px;
 `;
 

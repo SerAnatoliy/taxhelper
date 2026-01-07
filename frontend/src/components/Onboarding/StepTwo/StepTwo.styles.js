@@ -5,7 +5,7 @@ export const VerificationCard = styled.div`
   width: 100%;
   max-width: 400px;
   background: rgba(255, 255, 255, 0.8);
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   text-align: center;
   margin: 1rem 0;
@@ -48,7 +48,7 @@ export const VerifyButton = styled.button`
   padding: 1rem 2rem;
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.md};
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};

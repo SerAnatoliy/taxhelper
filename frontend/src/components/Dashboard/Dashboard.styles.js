@@ -83,7 +83,7 @@ export const RightColumn = styled.div`
 
 export const WelcomeCard = styled.div`
   background: rgba(231, 248, 255, 0.8);
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
   text-align: center;
 
@@ -119,7 +119,7 @@ export const WelcomeSubtitle = styled.p`
 
 export const QuickStatsCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 
   ${media.lg} {
@@ -164,7 +164,7 @@ export const QuickStatsChart = styled.div`
 
 export const DeadlinesCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 `;
 
@@ -287,7 +287,7 @@ export const AddReminderButton = styled.button`
 
 export const ExpensesSummaryCard = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 `;
 

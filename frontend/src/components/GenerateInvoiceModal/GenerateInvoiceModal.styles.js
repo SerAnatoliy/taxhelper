@@ -24,7 +24,7 @@ export const ModalOverlay = styled.div`
 
 export const ModalContent = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 2rem;
   width: 100%;
   max-width: 800px;

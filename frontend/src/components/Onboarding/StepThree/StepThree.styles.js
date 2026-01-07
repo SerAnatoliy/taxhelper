@@ -17,7 +17,7 @@ export const PlaidButton = styled.button`
   padding: 1rem 2rem;
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.md};
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
@@ -66,7 +66,7 @@ export const UploadArea = styled.div`
   max-width: 280px;
   aspect-ratio: 1;
   border: 3px dashed ${({ $hasFile }) => ($hasFile ? theme.colors.successGreen : theme.colors.mainFont)};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   display: flex;
   flex-direction: column;
   align-items: center;

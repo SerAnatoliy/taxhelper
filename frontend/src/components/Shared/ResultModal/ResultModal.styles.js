@@ -71,7 +71,7 @@ export const ModalButton = styled.button`
   background: ${theme.colors.mainButton};
   color: ${theme.colors.mainFont};
   border: 3px solid transparent;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.md};
   font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;

@@ -73,7 +73,7 @@ export const WelcomeSubtitle = styled.p`
 
 export const Card = styled.div`
   background: ${theme.colors.white};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 1.5rem;
 
   ${media.md} {
@@ -533,7 +533,7 @@ export const PrimaryButton = styled.button`
   background: ${theme.colors.mainButton};
   color: ${theme.colors.mainFont};
   border: 3px solid transparent;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.md};
   font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;
@@ -558,7 +558,7 @@ export const SecondaryButton = styled.button`
   background: ${theme.colors.secondaryButton};
   color: ${theme.colors.mainFont};
   border: 3px solid transparent;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.md};
   font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;
@@ -583,7 +583,7 @@ export const OutlineButton = styled.button`
   background: transparent;
   color: ${theme.colors.mainFont};
   border: 2px solid ${theme.colors.mainFont};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.base};
   font-weight: ${theme.typography.fontWeight.semibold};
   cursor: pointer;

@@ -17,7 +17,7 @@ export const OnboardingHeader = styled.header`
 export const LogoutButton = styled.button`
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   padding: 0.5rem 1.5rem;
   font-size: ${theme.typography.fontSize.md};
   font-weight: ${theme.typography.fontWeight.semibold};
@@ -175,7 +175,7 @@ export const StyledSelect = styled.select`
   color: ${theme.colors.mainFont};
   background: ${theme.colors.white};
   border: 2px solid ${({ $hasError }) => ($hasError ? theme.colors.error : 'transparent')};
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -208,7 +208,7 @@ export const SecondaryButton = styled.button`
   height: 50px;
   background: rgba(255, 255, 255, 0.5);
   border: 2px solid transparent;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.md};
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
@@ -230,7 +230,7 @@ export const PrimaryButton = styled.button`
   height: 50px;
   background: ${theme.colors.mainButton};
   border: 2px solid transparent;
-  order-radius: ${theme.borderRadius.xl};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.typography.fontSize.md};
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.mainFont};
