@@ -95,7 +95,7 @@ class GeneralAdviceResponse(BaseModel):
     suggestions: List[str]
     confidence: float
 
-@router.get("/", response_model=List[ExpenseResponse])
+@router.get("/")
 async def get_expenses(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
@@ -106,7 +106,7 @@ async def get_expenses(
 ):
     query = db.query(Transaction).filter(
         Transaction.user_id == current_user.id,
-        Transaction.type == "expense"
+        Transaction.type.in_(["expense", "invoice", "receipt"])  # CHANGED!
     )
     
     if not include_deleted:
@@ -117,13 +117,16 @@ async def get_expenses(
     if date_to:
         query = query.filter(Transaction.date <= datetime.fromisoformat(date_to))
     
+    if type:
+        query = query.filter(Transaction.type == type)
+    
     expenses = query.order_by(Transaction.date.desc()).all()
     
-    return [
+    expense_list = [
         ExpenseResponse(
             id=exp.id,
             date=exp.date,
-            amount=float(exp.amount),
+            amount=float(exp.amount) if exp.amount else 0.0,
             type=exp.type,
             category=exp.category,
             description=exp.description,
@@ -132,7 +135,8 @@ async def get_expenses(
         )
         for exp in expenses
     ]
-
+    
+    return {"expenses": expense_list}
 
 @router.get("/{expense_id}", response_model=ExpenseResponse)
 async def get_expense(

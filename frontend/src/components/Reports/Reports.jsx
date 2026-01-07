@@ -1,15 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Footer from '../Footer/Footer';
-import { SubmitButton } from '../Shared/ActionButton/ActionButton';
 import { AnyIcon } from '../Shared/AnyIcon/AnyIcon';
+import { SubmitButton } from '../Shared/ActionButton/ActionButton';
 import { SuccessModal, ErrorModal } from '../Shared/ResultModal/ResultModal';
 import AppHeader from '../Shared/AppHeader';
 
 import DataTable, { ActionIconButton, StatusBadge } from '../Shared/DataTable/DataTable';
 import Filters from '../Shared/Filters/Filters';
 
+import {
+  getProfile,
+  getReports,
+  deleteReport,
+  downloadReport,
+  reportWizardStep1,
+  reportWizardStep2,
+  reportWizardStep3,
+  submitReport,
+} from '../../services/api';
+
 import DeleteIcon from '../../assets/icons/Delete.svg?react';
 import DownloadIcon from '../../assets/icons/Download.svg?react';
+import EditIcon from '../../assets/icons/Edit.svg?react';
 import CheckIcon from '../../assets/icons/CheckIcon.svg?react';
 import OpenAccordeonIcon from '../../assets/icons/OpenAccordeon.svg?react';
 import AlertIcon from '../../assets/icons/AlertIcon.svg?react';
@@ -23,7 +35,7 @@ import {
   WelcomeCard,
   WelcomeTitle,
   WelcomeSubtitle,
-  Card,
+  ReportsListCard,
   CardTitle,
   WizardCard,
   WizardHeader,
@@ -34,16 +46,6 @@ import {
   StepItem,
   StepTitle,
   StepIcon,
-  CalculationGrid,
-  CalculationCard,
-  CalculationLabel,
-  CalculationValue,
-  CalculationSubtext,
-  CalculationTable,
-  CalculationRow,
-  CalculationCell,
-  InfoBadge,
-  ReportsListCard,
   FormGroup,
   Label,
   Select,
@@ -51,112 +53,60 @@ import {
   PrimaryButton,
   SecondaryButton,
   OutlineButton,
+  CalculationTable,
+  CalculationRow,
+  CalculationCell,
+  CalculationGrid,
+  CalculationCard,
+  CalculationLabel,
+  CalculationValue,
+  CalculationSubtext,
+  InfoBadge,
   QRCodeContainer,
   QRCodeImage,
   QRCodeLabel,
   VerifactuBadge,
   LoadingSpinner,
-  LoadingContainer,
   FiltersCardStyled,
 } from './Reports.styles';
 
-const API_BASE = '/api/reports';
-
-const REPORT_TYPES = [
-  { value: 'IVA_Q1', label: 'IVA Q1 (Modelo 303)' },
-  { value: 'IVA_Q2', label: 'IVA Q2 (Modelo 303)' },
-  { value: 'IVA_Q3', label: 'IVA Q3 (Modelo 303)' },
-  { value: 'IVA_Q4', label: 'IVA Q4 (Modelo 303)' },
-  { value: 'IRPF_Q1', label: 'IRPF Q1 (Modelo 130)' },
-  { value: 'IRPF_Q2', label: 'IRPF Q2 (Modelo 130)' },
-  { value: 'IRPF_Q3', label: 'IRPF Q3 (Modelo 130)' },
-  { value: 'IRPF_Q4', label: 'IRPF Q4 (Modelo 130)' },
-  { value: 'ANNUAL', label: 'Annual Summary (Modelo 390)' },
+const TAX_CATEGORIES = [
+  { value: 'IVA', label: 'IVA (Modelo 303)' },
+  { value: 'IRPF', label: 'IRPF (Modelo 130)' },
 ];
 
-const PERIODS = [
-  { value: 'Q1_2024', label: 'Q1 2024' },
-  { value: 'Q2_2024', label: 'Q2 2024' },
-  { value: 'Q3_2024', label: 'Q3 2024' },
-  { value: 'Q4_2024', label: 'Q4 2024' },
-  { value: 'Q1_2025', label: 'Q1 2025' },
-];
-
-const REPORT_TYPE_OPTIONS = [
-  { key: 'showIVA', label: 'IVA' },
-  { key: 'showIRPF', label: 'IRPF' },
-];
-
-const reportsApi = {
-  list: async (filters) => {
-    const token = localStorage.getItem('token');
-    const params = new URLSearchParams();
-    if (filters.dateFrom) params.append('date_from', filters.dateFrom);
-    if (filters.dateTo) params.append('date_to', filters.dateTo);
-    if (filters.showIVA) params.append('show_iva', 'true');
-    if (filters.showIRPF) params.append('show_irpf', 'true');
-    const res = await fetch(`${API_BASE}?${params}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.json();
-  },
-  wizardStep1: async (data) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/wizard/step1`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('Failed to create report');
-    return res.json();
-  },
-  wizardStep2: async (data) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/wizard/step2`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('Failed to calculate');
-    return res.json();
-  },
-  wizardStep3: async (data) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/wizard/step3`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('Failed to preview');
-    return res.json();
-  },
-  submit: async (data) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('Failed to submit');
-    return res.json();
-  },
-  download: async (reportId) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/download/${reportId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error('Failed to download');
-    return res.json();
-  },
-  delete: async (reportId) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/${reportId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.json();
-  },
+const getAvailablePeriods = () => {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth(); // 0-11
+  const currentQuarter = Math.floor(currentMonth / 3) + 1; // 1-4
+  
+  const periods = [];
+  
+  let prevQuarter = currentQuarter - 1;
+  let prevYear = currentYear;
+  if (prevQuarter === 0) {
+    prevQuarter = 4;
+    prevYear = currentYear - 1;
+  }
+  periods.push({
+    value: `Q${prevQuarter}_${prevYear}`,
+    label: `Q${prevQuarter} ${prevYear} (Previous)`,
+    quarter: prevQuarter,
+    year: prevYear,
+  });
+  
+  periods.push({
+    value: `Q${currentQuarter}_${currentYear}`,
+    label: `Q${currentQuarter} ${currentYear} (Current)`,
+    quarter: currentQuarter,
+    year: currentYear,
+  });
+  
+  return periods;
 };
+
+const AVAILABLE_PERIODS = getAvailablePeriods();
 
 const formatCurrency = (val) => {
   const num = parseFloat(val) || 0;
@@ -169,7 +119,7 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-const ReportsHistory = ({ reports, onDelete, onDownload, loading }) => {
+const ReportsHistory = ({ reports, total, onDelete, onDownload, onEdit, loading }) => {
   const columns = [
     { key: 'deadline', label: 'Deadline', render: (val) => formatDate(val) },
     { key: 'submit_date', label: 'Submit date', render: (val) => formatDate(val) },
@@ -177,21 +127,29 @@ const ReportsHistory = ({ reports, onDelete, onDownload, loading }) => {
     { key: 'status', label: 'Status', render: (val) => <StatusBadge $status={val}>{val}</StatusBadge> },
   ];
 
+  const canEdit = (report) => report.status !== 'Submitted' && report.status !== 'Accepted';
+
   return (
     <ReportsListCard>
-      <CardTitle>Reports History</CardTitle>
+      <CardTitle>Reports History {total > 0 && `(${total})`}</CardTitle>
       <DataTable
         columns={columns}
         data={reports}
         loading={loading}
         loadingText="Loading reports..."
         emptyText="No reports yet. Generate your first report!"
+        onRowClick={(report) => canEdit(report) && onEdit(report)}
         renderActions={(report) => (
           <>
-            <ActionIconButton onClick={() => onDelete(report.id)} title="Delete">
+            {canEdit(report) && (
+              <ActionIconButton onClick={(e) => { e.stopPropagation(); onEdit(report); }} title="Edit/Resume">
+                <AnyIcon icon={EditIcon} size="20px" />
+              </ActionIconButton>
+            )}
+            <ActionIconButton onClick={(e) => { e.stopPropagation(); onDelete(report.id); }} title="Delete">
               <AnyIcon icon={DeleteIcon} size="20px" />
             </ActionIconButton>
-            <ActionIconButton onClick={() => onDownload(report.id)} title="Download">
+            <ActionIconButton onClick={(e) => { e.stopPropagation(); onDownload(report.id); }} title="Download">
               <AnyIcon icon={DownloadIcon} size="20px" />
             </ActionIconButton>
           </>
@@ -201,29 +159,62 @@ const ReportsHistory = ({ reports, onDelete, onDownload, loading }) => {
   );
 };
 
-const WizardStep1 = ({ data, onChange, onNext, loading }) => (
-  <>
-    <FormGroup>
-      <Label>Report Type</Label>
-      <Select value={data.reportType || ''} onChange={(e) => onChange({ ...data, reportType: e.target.value })}>
-        <option value="">Select report type</option>
-        {REPORT_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-      </Select>
-    </FormGroup>
-    <FormGroup>
-      <Label>Period</Label>
-      <Select value={data.period || ''} onChange={(e) => onChange({ ...data, period: e.target.value })}>
-        <option value="">Select Period</option>
-        {PERIODS.map((period) => <option key={period.value} value={period.value}>{period.label}</option>)}
-      </Select>
-    </FormGroup>
-    <ButtonGroup>
-      <PrimaryButton onClick={onNext} disabled={!data.reportType || !data.period || loading}>
-        {loading ? <LoadingSpinner /> : 'Next Step'}
-      </PrimaryButton>
-    </ButtonGroup>
-  </>
-);
+const WizardStep1 = ({ data, onChange, onNext, loading }) => {
+  const handleCategoryChange = (category) => {
+    onChange({ ...data, category, reportType: '' });
+  };
+
+  const handlePeriodChange = (period) => {
+    const reportType = data.category && period ? `${data.category}_${period.split('_')[0]}` : '';
+    onChange({ ...data, period, reportType });
+  };
+
+  const isValid = data.category && data.period;
+
+  return (
+    <>
+      <FormGroup>
+        <Label>Tax Category</Label>
+        <Select 
+          value={data.category || ''} 
+          onChange={(e) => handleCategoryChange(e.target.value)}
+        >
+          <option value="">Select tax category</option>
+          {TAX_CATEGORIES.map((cat) => (
+            <option key={cat.value} value={cat.value}>{cat.label}</option>
+          ))}
+        </Select>
+      </FormGroup>
+      
+      <FormGroup>
+        <Label>Period</Label>
+        <Select 
+          value={data.period || ''} 
+          onChange={(e) => handlePeriodChange(e.target.value)}
+          disabled={!data.category}
+        >
+          <option value="">Select period</option>
+          {AVAILABLE_PERIODS.map((period) => (
+            <option key={period.value} value={period.value}>{period.label}</option>
+          ))}
+        </Select>
+      </FormGroup>
+
+      {data.category && data.period && (
+        <InfoBadge style={{ marginBottom: '1rem' }}>
+          <AnyIcon icon={AlertIcon} size="14px" />
+          Report: {data.category} {data.period.replace('_', ' ')}
+        </InfoBadge>
+      )}
+
+      <ButtonGroup>
+        <PrimaryButton onClick={onNext} disabled={!isValid || loading}>
+          {loading ? <LoadingSpinner /> : 'Next Step'}
+        </PrimaryButton>
+      </ButtonGroup>
+    </>
+  );
+};
 
 const WizardStep2 = ({ calculation, legalRef, onBack, onNext, loading }) => (
   <>
@@ -256,7 +247,9 @@ const WizardStep2 = ({ calculation, legalRef, onBack, onNext, loading }) => (
     </CalculationTable>
     <ButtonGroup $spaceBetween>
       <SecondaryButton onClick={onBack}>Back</SecondaryButton>
-      <PrimaryButton onClick={onNext} disabled={loading}>{loading ? <LoadingSpinner /> : 'Next Step'}</PrimaryButton>
+      <PrimaryButton onClick={onNext} disabled={loading}>
+        {loading ? <LoadingSpinner /> : 'Next Step'}
+      </PrimaryButton>
     </ButtonGroup>
   </>
 );
@@ -293,13 +286,15 @@ const WizardStep3 = ({ preview, calculation, onBack, onSubmit, loading }) => {
       )}
       <ButtonGroup $spaceBetween>
         <SecondaryButton onClick={onBack}>Back</SecondaryButton>
-        <PrimaryButton onClick={onSubmit} disabled={loading}>{loading ? <LoadingSpinner /> : 'Submit to Hacienda'}</PrimaryButton>
+        <PrimaryButton onClick={onSubmit} disabled={loading}>
+          {loading ? <LoadingSpinner /> : 'Submit to Hacienda'}
+        </PrimaryButton>
       </ButtonGroup>
     </>
   );
 };
 
-const ReportWizard = ({ isOpen, onClose, onComplete }) => {
+const ReportWizard = ({ isOpen, onClose, onComplete, editingReport }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [stepData, setStepData] = useState({});
@@ -311,16 +306,54 @@ const ReportWizard = ({ isOpen, onClose, onComplete }) => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  useEffect(() => {
+    if (editingReport) {
+      const category = editingReport.report_type?.split('_')[0] || '';
+      const period = editingReport.period || '';
+      setStepData({ category, period, reportType: editingReport.report_type });
+      setReportId(editingReport.id);
+      
+      if (editingReport.status === 'Pending' || editingReport.calculation_data) {
+        setStep(2);
+        handleResumeCalculation(editingReport.id);
+      }
+    }
+  }, [editingReport]);
+
+  const handleResumeCalculation = async (id) => {
+    setLoading(true);
+    try {
+      const calcResult = await reportWizardStep2({ reportId: id, confirmCalculation: true });
+      setCalculation(calcResult);
+    } catch (err) {
+      setErrorMessage(err.response?.data?.detail || 'Failed to load calculation.');
+      setShowErrorModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStep1Next = async () => {
     setLoading(true);
     try {
-      const result = await reportsApi.wizardStep1({ report_type: stepData.reportType, period: stepData.period });
+      const quarter = stepData.period.split('_')[0]; 
+      const reportType = `${stepData.category}_${quarter}`;
+      
+      const result = await reportWizardStep1({
+        reportType: reportType,
+        period: stepData.period,
+      });
       setReportId(result.report_id);
-      const calcResult = await reportsApi.wizardStep2({ report_id: result.report_id, confirm_calculation: true });
+
+      const calcResult = await reportWizardStep2({
+        reportId: result.report_id,
+        confirmCalculation: true,
+      });
       setCalculation(calcResult);
       setStep(2);
     } catch (err) {
-      alert('Failed to create report. Please try again.');
+      setErrorMessage(err.response?.data?.detail || 'Failed to create report. Please try again.');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -329,11 +362,15 @@ const ReportWizard = ({ isOpen, onClose, onComplete }) => {
   const handleStep2Next = async () => {
     setLoading(true);
     try {
-      const result = await reportsApi.wizardStep3({ report_id: reportId, review_confirmed: true });
+      const result = await reportWizardStep3({
+        reportId: reportId,
+        reviewConfirmed: true,
+      });
       setPreview(result);
       setStep(3);
     } catch (err) {
-      alert('Failed to generate preview. Please try again.');
+      setErrorMessage(err.response?.data?.detail || 'Failed to generate preview. Please try again.');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -342,12 +379,12 @@ const ReportWizard = ({ isOpen, onClose, onComplete }) => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const result = await reportsApi.submit({ report_id: reportId });
+      const result = await submitReport({ reportId: reportId });
       setSubmissionResult(result);
       setShowSuccessModal(true);
       onComplete?.();
     } catch (err) {
-      setErrorMessage(err.message || 'Failed to submit report to AEAT.');
+      setErrorMessage(err.response?.data?.detail || 'Failed to submit report to AEAT.');
       setShowErrorModal(true);
     } finally {
       setLoading(false);
@@ -373,16 +410,31 @@ const ReportWizard = ({ isOpen, onClose, onComplete }) => {
     { num: 4, title: 'Final summary' },
   ];
 
+  const displayTitle = stepData.category && stepData.period 
+    ? `${stepData.category} ${stepData.period.replace('_', ' ')}`
+    : 'Report Overview';
+
   return (
     <>
-      <SuccessModal isOpen={showSuccessModal} onClose={() => { setShowSuccessModal(false); handleClose(); }} title="Success" message="Your report has been successfully submitted to AEAT." csvCode={submissionResult?.csv_code} />
-      <ErrorModal isOpen={showErrorModal} onClose={() => setShowErrorModal(false)} title="Error" message={errorMessage} />
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => { setShowSuccessModal(false); handleClose(); }}
+        title="Success"
+        message="Your report has been successfully submitted to AEAT."
+        csvCode={submissionResult?.csv_code}
+      />
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="Error"
+        message={errorMessage}
+      />
       <WizardCard>
         <WizardHeader>
           <div>
-            <WizardTitle>Report Overview</WizardTitle>
-            {stepData.reportType && stepData.period && (
-              <p style={{ margin: '0.5rem 0 0', opacity: 0.7 }}>{stepData.reportType.replace('_', ' ')} - {stepData.period.replace('_', ' ')}</p>
+            <WizardTitle>{editingReport ? 'Resume Report' : 'New Report'}</WizardTitle>
+            {(stepData.category || stepData.period) && (
+              <p style={{ margin: '0.5rem 0 0', opacity: 0.7 }}>{displayTitle}</p>
             )}
           </div>
           <WizardMeta>
@@ -392,7 +444,12 @@ const ReportWizard = ({ isOpen, onClose, onComplete }) => {
         </WizardHeader>
         <StepList>
           {stepTitles.map((s) => (
-            <StepItem key={s.num} $active={step === s.num} $clickable={s.num < step} onClick={() => s.num < step && setStep(s.num)}>
+            <StepItem
+              key={s.num}
+              $active={step === s.num}
+              $clickable={s.num < step}
+              onClick={() => s.num < step && setStep(s.num)}
+            >
               <StepTitle $active={step === s.num}>Step {s.num}: {s.title}</StepTitle>
               <StepIcon $completed={s.num < step}>
                 {s.num < step ? <AnyIcon icon={CheckIcon} size="20px" /> : <AnyIcon icon={OpenAccordeonIcon} size="20px" />}
@@ -401,27 +458,69 @@ const ReportWizard = ({ isOpen, onClose, onComplete }) => {
           ))}
         </StepList>
         <div style={{ marginTop: '1.5rem' }}>
-          {step === 1 && <WizardStep1 data={stepData} onChange={setStepData} onNext={handleStep1Next} loading={loading} />}
-          {step === 2 && calculation && <WizardStep2 calculation={calculation} legalRef="Art. 29 LIVA deduction" onBack={() => setStep(1)} onNext={handleStep2Next} loading={loading} />}
-          {step === 3 && <WizardStep3 preview={preview} calculation={calculation} onBack={() => setStep(2)} onSubmit={handleSubmit} loading={loading} />}
+          {step === 1 && (
+            <WizardStep1
+              data={stepData}
+              onChange={setStepData}
+              onNext={handleStep1Next}
+              loading={loading}
+            />
+          )}
+          {step === 2 && calculation && (
+            <WizardStep2
+              calculation={calculation}
+              legalRef="Art. 29 LIVA deduction"
+              onBack={() => setStep(1)}
+              onNext={handleStep2Next}
+              loading={loading}
+            />
+          )}
+          {step === 3 && (
+            <WizardStep3
+              preview={preview}
+              calculation={calculation}
+              onBack={() => setStep(2)}
+              onSubmit={handleSubmit}
+              loading={loading}
+            />
+          )}
         </div>
       </WizardCard>
     </>
   );
 };
 
+const REPORT_TYPE_OPTIONS = [
+  { key: 'showIVA', label: 'IVA' },
+  { key: 'showIRPF', label: 'IRPF' },
+];
+
 const Reports = () => {
   const [reports, setReports] = useState([]);
+  const [totalReports, setTotalReports] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ dateFrom: '', dateTo: '', showIVA: false, showIRPF: false });
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState(null);
   const [userName, setUserName] = useState('User');
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await reportsApi.list(filters);
+      const apiFilters = {
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+      };
+      
+      if (filters.showIVA && !filters.showIRPF) {
+        apiFilters.showIVA = true;
+      } else if (filters.showIRPF && !filters.showIVA) {
+        apiFilters.showIRPF = true;
+      }
+
+      const data = await getReports(apiFilters);
       setReports(data.reports || []);
+      setTotalReports(data.total || 0);
     } catch (err) {
       console.error('Failed to fetch reports:', err);
     } finally {
@@ -431,33 +530,55 @@ const Reports = () => {
 
   useEffect(() => {
     fetchReports();
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUserName(payload.full_name || payload.sub || 'User');
-      } catch (e) {}
-    }
   }, [fetchReports]);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const profile = await getProfile();
+        const nameParts = (profile.full_name || '').split(' ');
+        setUserName(nameParts[0] || 'User');
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      }
+    };
+    loadProfile();
+  }, []);
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this report?')) {
       try {
-        await reportsApi.delete(id);
+        await deleteReport(id);
         fetchReports();
       } catch (err) {
-        alert('Failed to delete report');
+        const message = err.response?.data?.detail || 'Failed to delete report';
+        alert(message);
       }
     }
   };
 
   const handleDownload = async (id) => {
     try {
-      const data = await reportsApi.download(id);
-      alert(`Report ready for download. CSV: ${data.verifactu_hash?.substring(0, 12) || 'N/A'}`);
+      const data = await downloadReport(id);
+      if (data.download_url) {
+        window.open(data.download_url, '_blank');
+      } else {
+        alert(`Report ready. CSV Code: ${data.verifactu_hash?.substring(0, 12) || 'N/A'}`);
+      }
     } catch (err) {
-      alert('Failed to download report');
+      const message = err.response?.data?.detail || 'Failed to download report';
+      alert(message);
     }
+  };
+
+  const handleEdit = (report) => {
+    setEditingReport(report);
+    setWizardOpen(true);
+  };
+
+  const handleWizardClose = () => {
+    setWizardOpen(false);
+    setEditingReport(null);
   };
 
   const handleClearFilters = () => {
@@ -473,13 +594,32 @@ const Reports = () => {
             <WelcomeTitle>Welcome back, {userName}!</WelcomeTitle>
             <WelcomeSubtitle>Have you already submitted all income and expenses?</WelcomeSubtitle>
             {!wizardOpen && (
-              <SubmitButton onClick={() => setWizardOpen(true)} padding="0.75rem 1.5rem">Generate report</SubmitButton>
+              <SubmitButton
+                onClick={() => { setEditingReport(null); setWizardOpen(true); }}
+                padding="0.75rem 1.5rem"
+              >
+                Generate report
+              </SubmitButton>
             )}
           </WelcomeCard>
 
-          {wizardOpen && <ReportWizard isOpen={wizardOpen} onClose={() => setWizardOpen(false)} onComplete={fetchReports} />}
+          {wizardOpen && (
+            <ReportWizard
+              isOpen={wizardOpen}
+              onClose={handleWizardClose}
+              onComplete={fetchReports}
+              editingReport={editingReport}
+            />
+          )}
 
-          <ReportsHistory reports={reports} onDelete={handleDelete} onDownload={handleDownload} loading={loading} />
+          <ReportsHistory
+            reports={reports}
+            total={totalReports}
+            onDelete={handleDelete}
+            onDownload={handleDownload}
+            onEdit={handleEdit}
+            loading={loading}
+          />
 
           <FiltersCardStyled>
             <Filters

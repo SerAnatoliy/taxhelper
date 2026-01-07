@@ -15,7 +15,7 @@ import qrcode
 from io import BytesIO
 import logging
 
-from database import get_db, User, Transaction, Report, ReportRecord
+from database import get_db, User, Transaction, Report, ReportRecord, Invoice
 from auth import get_current_user
 
 logging.basicConfig(level=logging.INFO)
@@ -313,8 +313,12 @@ def get_legal_reference(report_type: ReportType) -> str:
 
 
 def calculate_irpf_rate(user: User, income: Decimal) -> float:
-    base_rate = 0.07 if hasattr(user, 'registration_date') and \
-        (datetime.now().date() - user.registration_date).days < 730 else 0.15
+    is_new_autonomo = False
+    if hasattr(user, 'registration_date') and user.registration_date is not None:
+        days_since_registration = (datetime.now().date() - user.registration_date).days
+        is_new_autonomo = days_since_registration < 730
+    
+    base_rate = 0.07 if is_new_autonomo else 0.15
     
     if hasattr(user, 'family_status') and user.family_status == "married_joint":
         base_rate *= 0.95
@@ -325,9 +329,15 @@ def calculate_irpf_rate(user: User, income: Decimal) -> float:
         "Andalucía": 0.0,
         "País Vasco": -0.02,
         "Navarra": -0.02,
+        "Valencia": 0.0,
+        "Galicia": 0.0,
+        "Canarias": -0.01,
+        "Baleares": 0.0,
     }
     
-    adjustment = regional_adjustments.get(getattr(user, 'region', None), 0.0)
+    user_region = getattr(user, 'region', None)
+    adjustment = regional_adjustments.get(user_region, 0.0)
+    
     final_rate = max(0.07, min(0.21, base_rate + adjustment))
     
     return final_rate
@@ -548,14 +558,37 @@ async def wizard_step_two(
     
     start_date, end_date = get_period_dates(report.period)
     
-    transactions = db.query(Transaction).filter(
-        Transaction.user_id == current_user.id,
-        Transaction.date >= start_date,
-        Transaction.date <= end_date
+    start_datetime = datetime.combine(start_date, datetime.min.time())
+    end_datetime = datetime.combine(end_date, datetime.max.time())
+    
+    invoices = db.query(Invoice).filter(
+        Invoice.user_id == current_user.id,
+        Invoice.invoice_date >= start_datetime,
+        Invoice.invoice_date <= end_datetime,
+        Invoice.is_deleted == False
     ).all()
     
-    income = sum(Decimal(str(t.amount)) for t in transactions if t.type == "income")
-    expenses = sum(Decimal(str(t.amount)) for t in transactions if t.type in ["expense", "invoice", "receipt"])
+    income = sum(Decimal(str(inv.total)) for inv in invoices)
+    
+    transactions = db.query(Transaction).filter(
+        Transaction.user_id == current_user.id,
+        Transaction.date >= start_datetime,
+        Transaction.date <= end_datetime,
+        Transaction.is_deleted == False
+    ).all()
+    
+    expenses = sum(
+        Decimal(str(t.amount)) 
+        for t in transactions 
+        if t.type in ["expense", "invoice", "receipt"]
+    )
+    
+    transaction_income = sum(
+        Decimal(str(t.amount)) 
+        for t in transactions 
+        if t.type == "income"
+    )
+    income += transaction_income
     
     vat_collected = income * Decimal("0.21")
     vat_deductible = expenses * Decimal("0.21")

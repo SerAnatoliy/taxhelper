@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, {keyframes} from 'styled-components';
 import { theme, media } from '../../theme';
 
 export const ReportsContainer = styled.div`
@@ -9,6 +9,21 @@ export const ReportsContainer = styled.div`
   width: 100%;
   box-sizing: border-box;
 `;
+
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+export const LoadingSpinner = styled.div`
+  width: 16px;
+  height: 16px;
+  border: 2px solid ${theme.colors.lightGrey};
+  border-top: 2px solid ${theme.colors.logoBlue};
+  border-radius: 50%;
+  animation: ${spin} 0.8s linear infinite;
+`;
+
 
 export const MainContent = styled.main`
   flex: 1;
