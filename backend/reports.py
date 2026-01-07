@@ -10,6 +10,7 @@ import hashlib
 import json
 import uuid
 import base64
+import asyncio
 import qrcode
 from io import BytesIO
 import logging
@@ -41,18 +42,31 @@ class ReportStatus(str, Enum):
     ACCEPTED = "Accepted"
     REJECTED = "Rejected"
 
-class Period(str, Enum):
-    Q1_2025 = "Q1_2025"
-    Q2_2025 = "Q2_2025"
-    Q3_2025 = "Q3_2025"
-    Q4_2025 = "Q4_2025"
-    ANNUAL_2025 = "ANNUAL_2025"
-    Q1_2026 = "Q1_2026"
-    Q2_2026 = "Q2_2026"
+class ReportTypeOption(BaseModel):
+    value: str
+    label: str
+    modelo: str
+    category: str  
+
+
+class PeriodOption(BaseModel):
+    value: str
+    label: str
+    year: int
+    quarter: Optional[int] = None  
+    is_current: bool = False
+    is_past: bool = False
+
+
+class ReportOptionsResponse(BaseModel):
+    report_types: List[ReportTypeOption]
+    periods: List[PeriodOption]
+
 
 class ReportCreateRequest(BaseModel):
     report_type: ReportType
-    period: Period
+    period: str  
+
 
 class CalculationResult(BaseModel):
     income: Decimal = Field(default=Decimal("0.00"))
@@ -74,7 +88,7 @@ class VerifactuRecord(BaseModel):
     total_amount: Decimal
     vat_amount: Decimal
     vat_rate: float
-    hash_chain: str  
+    hash_chain: str
     previous_hash: Optional[str] = None
     timestamp: datetime
     qr_code_data: str
@@ -83,7 +97,7 @@ class VerifactuRecord(BaseModel):
 class ReportPreview(BaseModel):
     report_id: int
     report_type: ReportType
-    period: Period
+    period: str
     status: ReportStatus
     calculation: CalculationResult
     verifactu_records: List[VerifactuRecord] = []
@@ -108,7 +122,8 @@ class ReportListResponse(BaseModel):
 
 class StepOneData(BaseModel):
     report_type: ReportType
-    period: Period
+    period: str  
+
 
 class StepTwoData(BaseModel):
     report_id: int
@@ -121,6 +136,82 @@ class StepThreeData(BaseModel):
 class SubmitRequest(BaseModel):
     report_id: int
     digital_signature: Optional[str] = None
+
+def get_report_type_options() -> List[ReportTypeOption]:
+    """Return all report types with Spanish labels and modelo numbers."""
+    return [
+        
+        ReportTypeOption(value="IVA_Q1", label="IVA Q1 (Modelo 303)", modelo="303", category="IVA"),
+        ReportTypeOption(value="IVA_Q2", label="IVA Q2 (Modelo 303)", modelo="303", category="IVA"),
+        ReportTypeOption(value="IVA_Q3", label="IVA Q3 (Modelo 303)", modelo="303", category="IVA"),
+        ReportTypeOption(value="IVA_Q4", label="IVA Q4 (Modelo 303)", modelo="303", category="IVA"),
+        ReportTypeOption(value="IVA_ANNUAL", label="IVA Anual (Modelo 390)", modelo="390", category="IVA"),
+        
+        ReportTypeOption(value="IRPF_Q1", label="IRPF Q1 (Modelo 130)", modelo="130", category="IRPF"),
+        ReportTypeOption(value="IRPF_Q2", label="IRPF Q2 (Modelo 130)", modelo="130", category="IRPF"),
+        ReportTypeOption(value="IRPF_Q3", label="IRPF Q3 (Modelo 130)", modelo="130", category="IRPF"),
+        ReportTypeOption(value="IRPF_Q4", label="IRPF Q4 (Modelo 130)", modelo="130", category="IRPF"),
+        ReportTypeOption(value="IRPF_ANNUAL", label="IRPF Anual (Modelo 100)", modelo="100", category="IRPF"),
+    ]
+
+
+def get_period_options(
+    past_years: int = 2,
+    future_quarters: int = 1,
+    include_annual: bool = True
+) -> List[PeriodOption]:
+
+    today = datetime.now().date()
+    current_year = today.year
+    current_quarter = (today.month - 1) // 3 + 1
+    
+    periods = []
+    start_year = current_year - past_years
+    
+    for year in range(start_year, current_year + 2):
+        for quarter in range(1, 5):
+            is_future = (year > current_year) or (year == current_year and quarter > current_quarter)
+            
+            if is_future:
+                quarters_ahead = (year - current_year) * 4 + (quarter - current_quarter)
+                if quarters_ahead > future_quarters:
+                    continue
+            
+            is_current = (year == current_year and quarter == current_quarter)
+            is_past = (year < current_year) or (year == current_year and quarter < current_quarter)
+            
+            periods.append(PeriodOption(
+                value=f"Q{quarter}_{year}",
+                label=f"Q{quarter} {year}",
+                year=year,
+                quarter=quarter,
+                is_current=is_current,
+                is_past=is_past
+            ))
+    
+    if include_annual:
+        for year in range(start_year, current_year + 1):
+            is_past = year < current_year
+            periods.append(PeriodOption(
+                value=f"ANNUAL_{year}",
+                label=f"Anual {year}",
+                year=year,
+                quarter=None,
+                is_current=False,
+                is_past=is_past
+            ))
+    
+    def sort_key(p: PeriodOption):
+        if p.is_current:
+            return (0, -p.year, -(p.quarter or 5))
+        elif not p.is_past:
+            return (1, -p.year, -(p.quarter or 5))
+        else:
+            return (2, -p.year, -(p.quarter or 5))
+    
+    periods.sort(key=sort_key)
+    return periods
+
 
 class VerifactuService:
     
@@ -138,13 +229,13 @@ class VerifactuService:
     
     @staticmethod
     def generate_qr_code(report_data: dict) -> str:
-        qr_url = f"https://www2.agenciatributaria.gob.es/wlpl/BURT-JDIT/VerificacionFactura"
+        qr_url = "https://www2.agenciatributaria.gob.es/wlpl/BURT-JDIT/VerificacionFactura"
         qr_params = {
             "nif": report_data.get("nif", ""),
             "num": report_data.get("invoice_number", ""),
             "fecha": report_data.get("date", ""),
             "importe": str(report_data.get("total", 0)),
-            "huella": report_data.get("hash", "")[:12]  
+            "huella": report_data.get("hash", "")[:12]
         }
         qr_content = f"{qr_url}?{'&'.join(f'{k}={v}' for k, v in qr_params.items())}"
         
@@ -182,27 +273,33 @@ class VerifactuService:
         return xml
 
 
-def get_period_dates(period: Period) -> tuple[date, date]:
-    year = int(period.value.split("_")[-1])
-    if "Q1" in period.value:
+def get_period_dates(period: str) -> tuple[date, date]:
+    parts = period.split("_")
+    year = int(parts[-1])
+    
+    if period.startswith("Q1"):
         return date(year, 1, 1), date(year, 3, 31)
-    elif "Q2" in period.value:
+    elif period.startswith("Q2"):
         return date(year, 4, 1), date(year, 6, 30)
-    elif "Q3" in period.value:
+    elif period.startswith("Q3"):
         return date(year, 7, 1), date(year, 9, 30)
-    elif "Q4" in period.value:
+    elif period.startswith("Q4"):
         return date(year, 10, 1), date(year, 12, 31)
     else:  # Annual
         return date(year, 1, 1), date(year, 12, 31)
 
-def get_deadline(report_type: ReportType, period: Period) -> date:
+
+def get_deadline(report_type: ReportType, period: str) -> date:
     _, end_date = get_period_dates(period)
     
     if "IVA" in report_type.value or "IRPF" in report_type.value:
         if "ANNUAL" in report_type.value:
             return date(end_date.year + 1, 1, 30)
         else:
-            return date(end_date.year, end_date.month + 1, 20) if end_date.month < 12 else date(end_date.year + 1, 1, 20)
+            if end_date.month < 12:
+                return date(end_date.year, end_date.month + 1, 20)
+            else:
+                return date(end_date.year + 1, 1, 20)
     
     return end_date + timedelta(days=20)
 
@@ -214,25 +311,85 @@ def get_legal_reference(report_type: ReportType) -> str:
     key = "IVA" if "IVA" in report_type.value else "IRPF"
     return refs.get(key, "Real Decreto 1007/2023 - VerifactU")
 
+
 def calculate_irpf_rate(user: User, income: Decimal) -> float:
     base_rate = 0.07 if hasattr(user, 'registration_date') and \
         (datetime.now().date() - user.registration_date).days < 730 else 0.15
     
-    if user.family_status == "married_joint":
+    if hasattr(user, 'family_status') and user.family_status == "married_joint":
         base_rate *= 0.95
     
     regional_adjustments = {
         "Madrid": -0.005,
         "Cataluña": 0.01,
         "Andalucía": 0.0,
-        "País Vasco": -0.02,  
-        "Navarra": -0.02,    
+        "País Vasco": -0.02,
+        "Navarra": -0.02,
     }
     
-    adjustment = regional_adjustments.get(user.region, 0.0)
+    adjustment = regional_adjustments.get(getattr(user, 'region', None), 0.0)
     final_rate = max(0.07, min(0.21, base_rate + adjustment))
     
     return final_rate
+
+
+async def send_to_aeat(report_id: int, xml_content: str):
+    logger.info(f"Sending report {report_id} to AEAT...")
+    # In production, this would:
+    # 1. Establish secure connection with AEAT servers
+    # 2. Authenticate using digital certificate
+    # 3. Send XML via SOAP/REST API
+    # 4. Process response and update report status
+    await asyncio.sleep(2)  # Simulate API call
+    logger.info(f"Report {report_id} sent to AEAT successfully")
+
+@router.get("/types", response_model=List[ReportTypeOption])
+async def get_report_types(
+    category: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    types = get_report_type_options()
+    
+    if category:
+        types = [t for t in types if t.category.upper() == category.upper()]
+    
+    return types
+
+
+@router.get("/periods", response_model=List[PeriodOption])
+async def get_periods(
+    past_years: int = 2,
+    future_quarters: int = 1,
+    include_annual: bool = True,
+    current_user: User = Depends(get_current_user)
+):
+    return get_period_options(
+        past_years=past_years,
+        future_quarters=future_quarters,
+        include_annual=include_annual
+    )
+
+
+@router.get("/options", response_model=ReportOptionsResponse)
+async def get_report_options(
+    category: Optional[str] = None,
+    past_years: int = 2,
+    future_quarters: int = 1,
+    include_annual: bool = True,
+    current_user: User = Depends(get_current_user)
+):
+    types = get_report_type_options()
+    if category:
+        types = [t for t in types if t.category.upper() == category.upper()]
+    
+    periods = get_period_options(
+        past_years=past_years,
+        future_quarters=future_quarters,
+        include_annual=include_annual
+    )
+    
+    return ReportOptionsResponse(report_types=types, periods=periods)
+
 
 @router.get("/list", response_model=ReportListResponse)
 async def list_reports(
@@ -267,6 +424,70 @@ async def list_reports(
         total=total
     )
 
+
+@router.get("/download/{report_id}")
+async def download_report(
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    report = db.query(Report).filter(
+        Report.id == report_id,
+        Report.user_id == current_user.id
+    ).first()
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    verifactu_service = VerifactuService()
+    calc_data = json.loads(report.calculation_data) if report.calculation_data else {}
+    
+    qr_data = {
+        "nif": current_user.nif or "PENDING",
+        "invoice_number": f"REP-{report.id}",
+        "date": report.submit_date.isoformat() if report.submit_date else datetime.now().date().isoformat(),
+        "total": float(report.total_tax or 0),
+        "hash": report.verifactu_hash or "PENDING"
+    }
+    
+    return {
+        "report_id": report.id,
+        "report_type": report.report_type,
+        "period": report.period,
+        "status": report.status,
+        "total_tax": str(report.total_tax),
+        "deadline": report.deadline.isoformat(),
+        "submit_date": report.submit_date.isoformat() if report.submit_date else None,
+        "calculation": calc_data,
+        "qr_code_base64": verifactu_service.generate_qr_code(qr_data),
+        "verifactu_hash": report.verifactu_hash,
+        "legal_text": "Factura verificable en la sede electrónica de la AEAT - VERI*FACTU",
+        "download_url": f"/api/reports/pdf/{report.id}"
+    }
+
+
+@router.delete("/{report_id}")
+async def delete_report(
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    report = db.query(Report).filter(
+        Report.id == report_id,
+        Report.user_id == current_user.id
+    ).first()
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    if report.status == ReportStatus.SUBMITTED.value:
+        raise HTTPException(status_code=400, detail="Cannot delete submitted reports")
+    
+    db.delete(report)
+    db.commit()
+    
+    return {"success": True, "message": "Report deleted"}
+
 @router.post("/wizard/step1", response_model=dict)
 async def wizard_step_one(
     data: StepOneData,
@@ -276,14 +497,14 @@ async def wizard_step_one(
     existing = db.query(Report).filter(
         Report.user_id == current_user.id,
         Report.report_type == data.report_type.value,
-        Report.period == data.period.value,
+        Report.period == data.period,
         Report.status != ReportStatus.REJECTED.value
     ).first()
     
     if existing and existing.status == ReportStatus.SUBMITTED.value:
         raise HTTPException(
             status_code=400,
-            detail=f"Report for {data.period.value} already submitted"
+            detail=f"Report for {data.period} already submitted"
         )
     
     if existing:
@@ -293,7 +514,7 @@ async def wizard_step_one(
         report = Report(
             user_id=current_user.id,
             report_type=data.report_type.value,
-            period=data.period.value,
+            period=data.period,
             status=ReportStatus.DRAFT.value,
             deadline=get_deadline(data.report_type, data.period),
             created_at=datetime.utcnow()
@@ -317,7 +538,6 @@ async def wizard_step_two(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Step 2: Review tax calculation"""
     report = db.query(Report).filter(
         Report.id == data.report_id,
         Report.user_id == current_user.id
@@ -326,7 +546,7 @@ async def wizard_step_two(
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
-    start_date, end_date = get_period_dates(Period(report.period))
+    start_date, end_date = get_period_dates(report.period)
     
     transactions = db.query(Transaction).filter(
         Transaction.user_id == current_user.id,
@@ -351,7 +571,7 @@ async def wizard_step_two(
         total_tax_due = max(Decimal("0.00"), irpf_retention)
     
     deductions = []
-    if current_user.num_children and current_user.num_children > 0:
+    if hasattr(current_user, 'num_children') and current_user.num_children and current_user.num_children > 0:
         child_deduction = Decimal(str(current_user.num_children)) * Decimal("1200")
         deductions.append({
             "type": "family",
@@ -389,7 +609,6 @@ async def wizard_step_three(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Step 3: Report preview with VerifactU data"""
     report = db.query(Report).filter(
         Report.id == data.report_id,
         Report.user_id == current_user.id
@@ -457,7 +676,7 @@ async def wizard_step_three(
     return ReportPreview(
         report_id=report.id,
         report_type=ReportType(report.report_type),
-        period=Period(report.period),
+        period=report.period,
         status=ReportStatus(report.status),
         calculation=calculation,
         verifactu_records=[verifactu_record],
@@ -528,58 +747,5 @@ async def submit_report(
         "report_id": report.id,
         "submission_date": report.submit_date.isoformat(),
         "verifactu_hash": report.verifactu_hash,
-        "csv_code": f"CSV{report.id:08d}"  
+        "csv_code": f"CSV{report.id:08d}"
     }
-
-@router.get("/download/{report_id}")
-async def download_report(
-    report_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    report = db.query(Report).filter(
-        Report.id == report_id,
-        Report.user_id == current_user.id
-    ).first()
-    
-    if not report:
-        raise HTTPException(status_code=404, detail="Report not found")
-    
-    verifactu_service = VerifactuService()
-    calc_data = json.loads(report.calculation_data) if report.calculation_data else {}
-    
-    qr_data = {
-        "nif": current_user.nif or "PENDING",
-        "invoice_number": f"REP-{report.id}",
-        "date": report.submit_date.isoformat() if report.submit_date else datetime.now().date().isoformat(),
-        "total": float(report.total_tax or 0),
-        "hash": report.verifactu_hash or "PENDING"
-    }
-    
-    return {
-        "report_id": report.id,
-        "report_type": report.report_type,
-        "period": report.period,
-        "status": report.status,
-        "total_tax": str(report.total_tax),
-        "deadline": report.deadline.isoformat(),
-        "submit_date": report.submit_date.isoformat() if report.submit_date else None,
-        "calculation": calc_data,
-        "qr_code_base64": verifactu_service.generate_qr_code(qr_data),
-        "verifactu_hash": report.verifactu_hash,
-        "legal_text": "Factura verificable en la sede electrónica de la AEAT - VERI*FACTU",
-        "download_url": f"/api/reports/pdf/{report.id}"
-    }
-
-
-async def send_to_aeat(report_id: int, xml_content: str):
-    logger.info(f"Sending report {report_id} to AEAT...")
-    # In production, this would:
-    # 1. Establish secure connection with AEAT servers
-    # 2. Authenticate using digital certificate
-    # 3. Send XML via SOAP/REST API
-    # 4. Process response and update report status
-    await asyncio.sleep(2)  # Simulate API call
-    logger.info(f"Report {report_id} sent to AEAT successfully")
-
-import asyncio

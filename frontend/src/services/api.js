@@ -22,7 +22,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      
       const currentPath = window.location.pathname;
       if (currentPath !== '/' && currentPath !== '/register') {
         window.location.href = '/?showLogin=true&sessionExpired=true';
@@ -281,7 +280,6 @@ export const uploadIncome = async (files) => {
   return response.data;
 };
 
-
 // ============== EXPENSES API ==============
 
 export const uploadExpenses = async (files) => {
@@ -358,5 +356,104 @@ export const getCurrentTaxPeriod = async () => {
   return response.data;
 };
 
+// ============== REPORTS API ==============
+
+/**
+ * Get all report options (types and periods) in a single call
+ * @param {Object} params - Query parameters
+ * @param {string} params.category - Filter by 'IVA' or 'IRPF' (optional)
+ * @param {number} params.pastYears - Number of past years to show (default: 2)
+ * @param {number} params.futureQuarters - Future quarters to show (default: 1)
+ * @param {boolean} params.includeAnnual - Include annual periods (default: true)
+ */
+export const getReportOptions = async (params = {}) => {
+  const queryParams = {};
+  if (params.category) queryParams.category = params.category;
+  if (params.pastYears !== undefined) queryParams.past_years = params.pastYears;
+  if (params.futureQuarters !== undefined) queryParams.future_quarters = params.futureQuarters;
+  if (params.includeAnnual !== undefined) queryParams.include_annual = params.includeAnnual;
+
+  const response = await api.get('/reports/options', { params: queryParams });
+  return response.data;
+};
+
+/**
+ * Get available report types
+ * @param {string} category - Filter by 'IVA' or 'IRPF' (optional)
+ */
+export const getReportTypes = async (category = null) => {
+  const params = category ? { category } : {};
+  const response = await api.get('/reports/types', { params });
+  return response.data;
+};
+
+export const getReportPeriods = async (params = {}) => {
+  const queryParams = {};
+  if (params.pastYears !== undefined) queryParams.past_years = params.pastYears;
+  if (params.futureQuarters !== undefined) queryParams.future_quarters = params.futureQuarters;
+  if (params.includeAnnual !== undefined) queryParams.include_annual = params.includeAnnual;
+
+  const response = await api.get('/reports/periods', { params: queryParams });
+  return response.data;
+};
+
+export const getReports = async (filters = {}) => {
+  const params = {};
+  if (filters.dateFrom) params.date_from = filters.dateFrom;
+  if (filters.dateTo) params.date_to = filters.dateTo;
+  if (filters.showIVA) params.report_type = 'IVA';
+  if (filters.showIRPF) params.report_type = 'IRPF';
+  if (filters.status) params.status = filters.status;
+  if (filters.skip !== undefined) params.skip = filters.skip;
+  if (filters.limit !== undefined) params.limit = filters.limit;
+
+  const response = await api.get('/reports/list', { params });
+  return response.data;
+};
+
+
+export const deleteReport = async (reportId) => {
+  const response = await api.delete(`/reports/${reportId}`);
+  return response.data;
+};
+
+
+export const downloadReport = async (reportId) => {
+  const response = await api.get(`/reports/download/${reportId}`);
+  return response.data;
+};
+
+
+export const reportWizardStep1 = async (data) => {
+  const response = await api.post('/reports/wizard/step1', {
+    report_type: data.reportType,
+    period: data.period,
+  });
+  return response.data;
+};
+
+export const reportWizardStep2 = async (data) => {
+  const response = await api.post('/reports/wizard/step2', {
+    report_id: data.reportId,
+    confirm_calculation: data.confirmCalculation ?? true,
+  });
+  return response.data;
+};
+
+export const reportWizardStep3 = async (data) => {
+  const response = await api.post('/reports/wizard/step3', {
+    report_id: data.reportId,
+    review_confirmed: data.reviewConfirmed ?? true,
+  });
+  return response.data;
+};
+
+export const submitReport = async (data) => {
+  const response = await api.post('/reports/submit', {
+    report_id: data.reportId,
+    digital_signature: data.digitalSignature || null,
+  });
+  return response.data;
+};
 
 export default api;
