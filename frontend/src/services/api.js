@@ -455,5 +455,154 @@ export const submitReport = async (data) => {
   });
   return response.data;
 };
+// ============== VERIFACTU EVENTS API ==============
+/**
+ * Get VeriFactu events for a specific invoice
+ * @param {number} invoiceId - Invoice ID
+ */
+export const getInvoiceVerifactuEvents = async (invoiceId) => {
+  const response = await api.get(`/verifactu/events/invoice/${invoiceId}`);
+  return response.data;
+};
+
+/**
+ * Get paginated list of all VeriFactu events
+ * @param {Object} params - Query parameters
+ * @param {number} params.page - Page number (default: 1)
+ * @param {number} params.pageSize - Items per page (default: 20)
+ * @param {string} params.eventType - Filter by event type (optional)
+ * @param {string} params.dateFrom - Filter from date (optional)
+ * @param {string} params.dateTo - Filter to date (optional)
+ */
+export const getVerifactuEvents = async (params = {}) => {
+  const queryParams = {};
+  if (params.page) queryParams.page = params.page;
+  if (params.pageSize) queryParams.page_size = params.pageSize;
+  if (params.eventType) queryParams.event_type = params.eventType;
+  if (params.dateFrom) queryParams.date_from = params.dateFrom;
+  if (params.dateTo) queryParams.date_to = params.dateTo;
+
+  const response = await api.get('/verifactu/events/list', { params: queryParams });
+  return response.data;
+};
+
+export const getVerifactuEventsSummary = async () => {
+  const response = await api.get('/verifactu/events/summary');
+  return response.data;
+};
+
+/**
+ * Export VeriFactu events for AEAT submission
+ * @param {string} dateFrom - Start date (YYYY-MM-DD)
+ * @param {string} dateTo - End date (YYYY-MM-DD)
+ */
+export const exportVerifactuEvents = async (dateFrom, dateTo) => {
+  const response = await api.get('/verifactu/events/export', {
+    params: { date_from: dateFrom, date_to: dateTo },
+  });
+  return response.data;
+};
+
+export const verifyVerifactuIntegrity = async () => {
+  const response = await api.get('/verifactu/events/verify-integrity');
+  return response.data;
+};
+
+export const getVerifactuEventTypes = async () => {
+  const response = await api.get('/verifactu/events/types');
+  return response.data;
+};
+
+
+// ============== AEAT SUBMISSION API ==============
+
+export const getAEATStatus = async () => {
+  const response = await api.get('/aeat/status');
+  return response.data;
+};
+
+/**
+ * Upload digital certificate for AEAT authentication
+ * @param {string} certificateBase64 - Base64 encoded .p12/.pfx certificate
+ * @param {string} password - Certificate password
+ */
+export const uploadAEATCertificate = async (certificateBase64, password) => {
+  const response = await api.post('/aeat/certificate/upload', {
+    certificate_base64: certificateBase64,
+    password: password,
+  });
+  return response.data;
+};
+
+/**
+ * Upload certificate file directly
+ * @param {File} file - Certificate file (.p12 or .pfx)
+ * @param {string} password - Certificate password
+ */
+export const uploadAEATCertificateFile = async (file, password) => {
+  const formData = new FormData();
+  formData.append('certificate', file);
+  if (password) {
+    formData.append('password', password);
+  }
+  
+  const response = await api.post('/aeat/certificate/upload-file', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const deleteAEATCertificate = async () => {
+  const response = await api.delete('/aeat/certificate');
+  return response.data;
+};
+
+/**
+ * Test connection to AEAT servers
+ * @param {boolean} useSandbox - Use sandbox environment (default: true)
+ */
+export const testAEATConnection = async (useSandbox = true) => {
+  const response = await api.post('/aeat/test-connection', null, {
+    params: { use_sandbox: useSandbox },
+  });
+  return response.data;
+};
+
+/**
+ * Submit invoice to AEAT VeriFactu
+ * @param {number} invoiceId - Invoice ID to submit
+ * @param {boolean} useSandbox - Use sandbox environment (default: true)
+ */
+export const submitInvoiceToAEAT = async (invoiceId, useSandbox = true) => {
+  const response = await api.post(`/aeat/submit/invoice/${invoiceId}`, null, {
+    params: { use_sandbox: useSandbox },
+  });
+  return response.data;
+};
+
+/**
+ * Submit report to AEAT
+ * @param {number} reportId - Report ID to submit
+ * @param {boolean} useSandbox - Use sandbox environment (default: true)
+ */
+export const submitReportToAEAT = async (reportId, useSandbox = true) => {
+  const response = await api.post(`/aeat/submit/report/${reportId}`, null, {
+    params: { use_sandbox: useSandbox },
+  });
+  return response.data;
+};
+
+/**
+ * Get AEAT submission history
+ * @param {number} limit - Max number of results (default: 20)
+ * @param {string} submissionType - Filter by 'invoice' or 'report' (optional)
+ */
+export const getAEATSubmissionHistory = async (limit = 20, submissionType = null) => {
+  const params = { limit };
+  if (submissionType) params.submission_type = submissionType;
+  
+  const response = await api.get('/aeat/submissions/history', { params });
+  return response.data;
+};
 
 export default api;

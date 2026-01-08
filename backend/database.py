@@ -56,6 +56,8 @@ class User(Base):
     report_records = relationship("ReportRecord", back_populates="user")
     invoice_verifactu_events = relationship("InvoiceVerifactuEvent", back_populates="user")
     verifactu_events = relationship("VerifactuEvent", back_populates="user")
+    certificate = relationship("UserCertificate", back_populates="user", uselist=False)
+    aeat_submissions = relationship("AEATSubmission", back_populates="user")
 
 
 class BankAccount(Base):
@@ -171,7 +173,9 @@ class Invoice(Base):
     verifactu_submitted = Column(Boolean, default=False, nullable=False)
     
     aeat_response_code = Column(String(20), nullable=True)
-    aeat_csv = Column(String(30), nullable=True)  
+    aeat_csv = Column(String(30), nullable=True)
+    aeat_submitted_at = Column(DateTime, nullable=True)
+    aeat_environment = Column(String(20), nullable=True)  
     
     verifactu_xml = Column(Text, nullable=True)
     
@@ -213,7 +217,10 @@ class Report(Base):
     verifactu_hash = Column(String(64))  
     verifactu_mode = Column(Boolean, default=True)  
     xml_submission = Column(Text)  
-    csv_code = Column(String(20))  
+    csv_code = Column(String(20)) 
+    
+    aeat_submitted_at = Column(DateTime, nullable=True)
+    aeat_environment = Column(String(20), nullable=True) 
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -314,6 +321,75 @@ class VerifactuEvent(Base):
     
     user = relationship("User", back_populates="verifactu_events")
     report = relationship("Report", back_populates="verifactu_events")
+    
+class UserCertificate(Base):
+    __tablename__ = "user_certificates"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    
+    certificate_type = Column(String(50), default="FNMT")  
+    subject_cn = Column(String(255), nullable=True)  
+    subject_nif = Column(String(20), nullable=True)  
+    issuer = Column(String(255), nullable=True)
+    serial_number = Column(String(100), nullable=True)
+    
+    valid_from = Column(DateTime, nullable=True)
+    valid_until = Column(DateTime, nullable=True)
+    
+    certificate_data_encrypted = Column(BYTEA, nullable=False)
+    
+    password_encrypted = Column(BYTEA, nullable=False)
+    
+    encryption_salt = Column(BYTEA, nullable=False)
+    
+    fingerprint = Column(String(64), nullable=False, index=True)
+    
+    is_active = Column(Boolean, default=True)
+    is_expired = Column(Boolean, default=False)
+    last_used_at = Column(DateTime, nullable=True)
+    use_count = Column(Integer, default=0)
+    
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    uploaded_ip = Column(String(45), nullable=True)
+    
+    user = relationship("User", back_populates="certificate")
+
+
+class AEATSubmission(Base):
+    __tablename__ = "aeat_submissions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    
+    submission_type = Column(String(20), nullable=False)  
+    entity_id = Column(Integer, nullable=False)  
+    
+    environment = Column(String(20), default="sandbox")  
+    endpoint_url = Column(String(500), nullable=True)
+    
+    xml_sent = Column(Text, nullable=True) 
+    xml_hash = Column(String(64), nullable=True)  
+    
+    success = Column(Boolean, default=False)
+    csv_code = Column(String(50), nullable=True) 
+    response_code = Column(String(20), nullable=True)
+    response_message = Column(Text, nullable=True)
+    response_raw = Column(Text, nullable=True)  
+    
+    error_codes = Column(JSON, nullable=True)  
+    
+    submitted_at = Column(DateTime, default=datetime.utcnow, index=True)
+    response_received_at = Column(DateTime, nullable=True)
+    duration_ms = Column(Integer, nullable=True)  
+    
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    
+    certificate_fingerprint = Column(String(64), nullable=True)
+    
+    user = relationship("User", back_populates="aeat_submissions")
 
 # Base.metadata.create_all(bind=engine)
 
