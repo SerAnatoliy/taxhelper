@@ -29,19 +29,29 @@ class AEATConfig:
     cert_content: Optional[bytes] = None  
     timeout: int = 30
     
-    SANDBOX_URL = "https://prewww1.aeat.es/wlpl/SSII-FACT/ws/fe/SiiFactFEV1SOAP"
-    PRODUCTION_URL = "https://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fe/SiiFactFEV1SOAP"
+    SII_SANDBOX_URL = "https://prewww1.aeat.es/wlpl/SSII-FACT/ws/fe/SiiFactFEV1SOAP"
+    SII_PRODUCTION_URL = "https://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fe/SiiFactFEV1SOAP"
     
-    VERIFACTU_SANDBOX = "https://prewww10.aeat.es/wlpl/TIKE-CONT/ws/SusFactura"
-    VERIFACTU_PRODUCTION = "https://www10.aeat.es/wlpl/TIKE-CONT/ws/SuusFactura"
+    VERIFACTU_SANDBOX = "https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP"
+    VERIFACTU_PRODUCTION = "https://www1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP"
+    
+    REQUERIMIENTO_SANDBOX = "https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/RequerimientoSOAP"
+    REQUERIMIENTO_PRODUCTION = "https://www1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/RequerimientoSOAP"
+    
+    QR_VALIDATION_SANDBOX = "https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR"
+    QR_VALIDATION_PRODUCTION = "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR"
     
     @property
     def base_url(self) -> str:
-        return self.SANDBOX_URL if self.environment == AEATEnvironment.SANDBOX else self.PRODUCTION_URL
+        return self.SII_SANDBOX_URL if self.environment == AEATEnvironment.SANDBOX else self.SII_PRODUCTION_URL
     
     @property
     def verifactu_url(self) -> str:
         return self.VERIFACTU_SANDBOX if self.environment == AEATEnvironment.SANDBOX else self.VERIFACTU_PRODUCTION
+    
+    @property
+    def qr_validation_url(self) -> str:
+        return self.QR_VALIDATION_SANDBOX if self.environment == AEATEnvironment.SANDBOX else self.QR_VALIDATION_PRODUCTION
 
 
 @dataclass 
@@ -60,11 +70,11 @@ class AEATResponse:
 
 
 class AEATClient:    
-    # SOAP Namespaces
     NAMESPACES = {
         'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
-        'sif': 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd',
-        'sifr': 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd',
+        'sf': 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd',
+        'sfLR': 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd',
+        'sfR': 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd',
     }
     
     def __init__(self, config: AEATConfig):
@@ -160,8 +170,24 @@ class AEATClient:
         )
     
     def _build_soap_envelope(self, xml_content: str) -> str:
+        if 'soapenv:Envelope' in xml_content:
+            return xml_content
+        
+        if '<sum:RegFactuSistemaFacturacion>' in xml_content or '<RegFactuSistemaFacturacion' in xml_content:
+            return f"""<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:sum="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd"
+    xmlns:sum1="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd">
+    <soapenv:Header/>
+    <soapenv:Body>
+        {xml_content}
+    </soapenv:Body>
+</soapenv:Envelope>"""
+        
         return f"""<?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:sum="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd"
+    xmlns:sum1="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd">
     <soapenv:Header/>
     <soapenv:Body>
         {xml_content}
@@ -170,17 +196,12 @@ class AEATClient:
 
     def _parse_response(self, response_xml: str) -> AEATResponse:
         try:
+            if response_xml.startswith('\ufeff'):
+                response_xml = response_xml[1:]
+            
             root = etree.fromstring(response_xml.encode('utf-8'))
             
-            # Find response body
-            body = root.find('.//soapenv:Body', self.NAMESPACES)
-            if body is None:
-                body = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Body')
-            
-            # Check for SOAP Fault
-            fault = root.find('.//soapenv:Fault', self.NAMESPACES)
-            if fault is None:
-                fault = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault')
+            fault = root.find('.//{http://schemas.xmlsoap.org/soap/envelope/}Fault')
             
             if fault is not None:
                 fault_string = fault.findtext('.//faultstring', default='Unknown error')
@@ -191,35 +212,82 @@ class AEATClient:
                     raw_response=response_xml
                 )
             
-            csv_elem = root.find('.//*[local-name()="CSV"]')
+            def find_by_local_name(parent, local_name):
+                for elem in parent.iter():
+                    if elem.tag.split('}')[-1] == local_name:
+                        return elem
+                return None
+            
+            def find_all_by_local_name(parent, local_name):
+                results = []
+                for elem in parent.iter():
+                    if elem.tag.split('}')[-1] == local_name:
+                        results.append(elem)
+                return results
+            
+            estado_envio_elem = find_by_local_name(root, 'EstadoEnvio')
+            estado_text = estado_envio_elem.text if estado_envio_elem is not None else ""
+            
+            csv_elem = find_by_local_name(root, 'CSV')
             csv_code = csv_elem.text if csv_elem is not None else None
             
-            estado = root.find('.//*[local-name()="EstadoEnvio"]')
-            estado_text = estado.text if estado is not None else None
+            tiempo_espera_elem = find_by_local_name(root, 'TiempoEsperaEnvio')
+            wait_seconds = int(tiempo_espera_elem.text) if tiempo_espera_elem is not None else 60
             
-            errores = root.findall('.//*[local-name()="RegistroRechazado"]')
+            success = estado_text in ['Correcto', 'AceptadoConErrores', 'ParcialmenteCorrecto']
+            
             errors = []
-            for error in errores:
-                codigo = error.findtext('.//*[local-name()="CodigoErrorRegistro"]', '')
-                desc = error.findtext('.//*[local-name()="DescripcionErrorRegistro"]', '')
-                errors.append({'code': codigo, 'description': desc})
+            for linea in find_all_by_local_name(root, 'RespuestaLinea'):
+                estado_registro_elem = find_by_local_name(linea, 'EstadoRegistro')
+                estado_reg_text = estado_registro_elem.text if estado_registro_elem is not None else ""
+                
+                if estado_reg_text in ['Incorrecto', 'AceptadoConErrores']:
+                    error_code_elem = find_by_local_name(linea, 'CodigoErrorRegistro')
+                    error_desc_elem = find_by_local_name(linea, 'DescripcionErrorRegistro')
+                    
+                    error_code = error_code_elem.text if error_code_elem is not None else 'UNKNOWN'
+                    error_desc = error_desc_elem.text if error_desc_elem is not None else 'Unknown error'
+                    
+                    nif_elem = find_by_local_name(linea, 'IDEmisorFactura')
+                    num_serie_elem = find_by_local_name(linea, 'NumSerieFactura')
+                    
+                    errors.append({
+                        'code': error_code,
+                        'description': error_desc,
+                        'nif': nif_elem.text if nif_elem is not None else '',
+                        'invoice_number': num_serie_elem.text if num_serie_elem is not None else '',
+                        'status': estado_reg_text
+                    })
             
-            success = estado_text in ('Correcto', 'AceptadoConErrores', 'Aceptado') or csv_code is not None
+            if success:
+                response_message = f"Envío aceptado: {estado_text}"
+                if csv_code:
+                    response_message += f" (CSV: {csv_code})"
+            else:
+                response_message = f"Estado: {estado_text}"
+                if errors:
+                    response_message += f" - {len(errors)} error(es)"
+                    if errors[0].get('description'):
+                        response_message += f": {errors[0]['description'][:100]}"
             
             return AEATResponse(
                 success=success,
                 csv_code=csv_code,
-                response_code=estado_text,
-                response_message=f"Estado: {estado_text}",
+                response_code=estado_text or 'RECEIVED',
+                response_message=response_message,
                 raw_response=response_xml,
                 errors=errors if errors else None
             )
             
-        except etree.XMLSyntaxError as e:
-            logger.error(f"Failed to parse AEAT response: {e}")
+        except Exception as e:
+            logger.error(f"Error parsing AEAT response: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            success = 'Correcto' in response_xml and 'Incorrecto' not in response_xml
             return AEATResponse(
-                success=False,
-                response_code='PARSE_ERROR',
+                success=success,
+                response_code='PARSE_ERROR' if not success else 'RECEIVED',
                 response_message=str(e),
                 raw_response=response_xml
             )
@@ -229,7 +297,7 @@ class AEATClient:
             ssl_ctx = self._setup_ssl_context()
             soap_request = self._build_soap_envelope(xml_content)
             
-            logger.info(f"Submitting to AEAT ({self.config.environment.value}): {self.config.verifactu_url}")
+            logger.info(f"Submitting to AEAT (sandbox): {self.config.verifactu_url}")
             
             async with httpx.AsyncClient(
                 verify=ssl_ctx,
@@ -239,7 +307,7 @@ class AEATClient:
                     self.config.verifactu_url,
                     content=soap_request.encode('utf-8'),
                     headers={
-                        'Content-Type': 'application/soap+xml; charset=utf-8',
+                        'Content-Type': 'text/xml; charset=utf-8',
                         'SOAPAction': 'SuministroFactura'
                     }
                 )
@@ -295,7 +363,7 @@ class AEATClient:
                     endpoint,
                     content=soap_request.encode('utf-8'),
                     headers={
-                        'Content-Type': 'application/soap+xml; charset=utf-8',
+                        'Content-Type': 'text/xml; charset=utf-8',
                         'SOAPAction': f'Presentacion{modelo}'
                     }
                 )
