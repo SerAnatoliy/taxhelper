@@ -55,6 +55,7 @@ class User(Base):
     reports = relationship("Report", back_populates="user")
     report_records = relationship("ReportRecord", back_populates="user")
     invoice_verifactu_events = relationship("InvoiceVerifactuEvent", back_populates="user")
+    verifactu_events = relationship("VerifactuEvent", back_populates="user")
 
 
 class BankAccount(Base):
@@ -221,6 +222,7 @@ class Report(Base):
     # Relationships
     user = relationship("User", back_populates="reports")
     records = relationship("ReportRecord", back_populates="report")
+    verifactu_events = relationship("VerifactuEvent", back_populates="report")
 
 
 class ReportRecord(Base):
@@ -293,23 +295,25 @@ class VerifactuEvent(Base):
     __tablename__ = "verifactu_events"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     
     event_type = Column(String(50), nullable=False)
     
     event_code = Column(String(20))
     description = Column(Text)
-    
 
-    report_id = Column(Integer, ForeignKey("reports.id"))
+    report_id = Column(Integer, ForeignKey("reports.id"), index=True)
     record_id = Column(String(36))
-    
+
     hash_before = Column(String(64))
     hash_after = Column(String(64))
     ip_address = Column(String(45))
     user_agent = Column(String(255))
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    user = relationship("User", back_populates="verifactu_events")
+    report = relationship("Report", back_populates="verifactu_events")
 
 # Base.metadata.create_all(bind=engine)
 

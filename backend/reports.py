@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_, func
 from typing import List, Optional
@@ -18,6 +18,7 @@ from verifactu import (
     VerifactuRecordType,
     VerifactuEventType,
 )
+from verifactu_events import VerifactuEventService
 
 from database import get_db, User, Transaction, Report, ReportRecord, Invoice
 from auth import get_current_user
@@ -586,6 +587,7 @@ async def wizard_step_two(
 @router.post("/wizard/step3", response_model=ReportPreview)
 async def wizard_step_three(
     data: StepThreeData,
+    request: Request,  
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -616,8 +618,30 @@ async def wizard_step_three(
     )
     
     hash_result = VerifactuService.generate_hash(record_data, previous_hash)
-    
     qr_result = VerifactuService.generate_qr_code(record_data, hash_result.hash_value)
+    
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent", "")[:255]
+    
+    VerifactuEventService.log_report_event(
+        db=db,
+        user_id=current_user.id,
+        report_id=report.id,
+        event_type=VerifactuEventType.HASH_GENERATED,
+        hash_after=hash_result.hash_value,
+        hash_before=previous_hash,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        event_data={
+            "hash_input": hash_result.hash_input,
+            "algorithm": "SHA-256",
+            "qr_generated": True
+        }
+    )
+    
+    report.verifactu_hash = hash_result.hash_value
+    report.status = ReportStatus.PENDING.value
+    db.commit()
     
     verifactu_record = VerifactuRecord(
         record_id=str(uuid.uuid4()),
@@ -632,10 +656,6 @@ async def wizard_step_three(
         timestamp=datetime.utcnow(),
         qr_code_data=qr_result.qr_base64
     )
-    
-    report.verifactu_hash = hash_result.hash_value
-    report.status = ReportStatus.PENDING.value
-    db.commit()
     
     calculation = CalculationResult(
         income=Decimal(calc_data.get("income", "0")),
@@ -658,9 +678,11 @@ async def wizard_step_three(
         deadline=report.deadline,
         legal_reference=get_legal_reference(ReportType(report.report_type))
     )
+    
 @router.post("/submit")
 async def submit_report(
     data: SubmitRequest,
+    request: Request,  
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -710,9 +732,43 @@ async def submit_report(
     report.submit_date = datetime.now().date()
     report.xml_submission = xml_result.xml_content
     
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent", "")[:255]
+    
+    VerifactuEventService.log_report_event(
+        db=db,
+        user_id=current_user.id,
+        report_id=report.id,
+        event_type=VerifactuEventType.REPORT_CREATED,
+        hash_after=hash_result.hash_value,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        event_data={
+            "report_type": report.report_type,
+            "period": report.period,
+            "total_tax": str(report.total_tax)
+        }
+    )
+    
+    VerifactuEventService.log_report_event(
+        db=db,
+        user_id=current_user.id,
+        report_id=report.id,
+        event_type=VerifactuEventType.REPORT_SUBMITTED,
+        hash_after=hash_result.hash_value,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        event_data={
+            "xml_generated": True,
+            "submission_timestamp": datetime.utcnow().isoformat()
+        }
+    )
+    
     db.commit()
     
     background_tasks.add_task(send_to_aeat, report.id, xml_result.xml_content)
+    
+    logger.info(f"Report {report.id} submitted with hash: {report.verifactu_hash[:16]}...")
     
     return {
         "success": True,
