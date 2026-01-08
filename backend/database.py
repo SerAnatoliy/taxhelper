@@ -182,7 +182,7 @@ class Invoice(Base):
     verifactu_events = relationship("InvoiceVerifactuEvent", back_populates="invoice", cascade="all, delete-orphan")
     user = relationship("User", back_populates="invoices")
     items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
-
+    verifactu_chain_records = relationship("VerifactuChainRecord", back_populates="invoice")
 
 class InvoiceItem(Base):
     __tablename__ = "invoice_items"
@@ -322,6 +322,33 @@ class VerifactuEvent(Base):
     user = relationship("User", back_populates="verifactu_events")
     report = relationship("Report", back_populates="verifactu_events")
     
+class VerifactuChainRecord(Base):
+    __tablename__ = "verifactu_chain_records"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    
+    nif = Column(String(15), nullable=False, index=True)
+    software_id = Column(String(50), default="01", index=True)  
+    
+    invoice_number = Column(String(50), nullable=False)
+    invoice_date = Column(DateTime, nullable=False)
+    invoice_type = Column(String(10), nullable=False)  
+    
+    hash_value = Column(String(64), nullable=False, index=True)
+    previous_hash = Column(String(64), nullable=True)  
+    hash_input = Column(Text, nullable=True)  
+    
+    csv_code = Column(String(30), nullable=True)
+    aeat_accepted = Column(Boolean, default=False)
+    aeat_submitted_at = Column(DateTime, nullable=True)
+    aeat_environment = Column(String(20), nullable=True)  
+    
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    invoice_id = Column(Integer, ForeignKey("invoices.id"), nullable=True, index=True)
+    
+    invoice = relationship("Invoice", back_populates="verifactu_chain_records")
+        
 class UserCertificate(Base):
     __tablename__ = "user_certificates"
     
