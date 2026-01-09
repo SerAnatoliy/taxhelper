@@ -1,43 +1,34 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from expenses import router as expenses_router
 import stripe
 import os
 from dotenv import load_dotenv
+from bank import router as bank_router
+from veriff import router as veriff_router
+from reminders import router as reminders_router
+from chat import router as chat_router
+from invoices import router as invoice_router
+from dashboard import router as dashboard_router
+from reports import router as reports_router
+from verifactu_events import router as verifactu_events_router
+from aeat_submission import router as aeat_router
 
+app = FastAPI(title="TaxHelper API", version="0.1.0")
 load_dotenv()
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-
-from routers import (
-    auth_router,
-    expenses_router,
-    bank_router,
-    veriff_router,
-    reminders_router,
-    chat_router,
-    invoice_router,
-    dashboard_router,
-    reports_router,
-    verifactu_events_router,
-    aeat_router,
-)
-
-app = FastAPI(
-    title="TaxHelper API",
-    description="Fintech API for autónomos in Spain",
-    version="0.2.0",
-)
-
-# CORS configuration
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:5173")],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+from auth import router as auth_router
 app.include_router(auth_router)
 app.include_router(expenses_router)
 app.include_router(bank_router)

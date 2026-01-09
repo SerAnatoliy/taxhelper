@@ -12,7 +12,7 @@ from cryptography.x509 import load_der_x509_certificate
 import base64
 
 from sqlalchemy.orm import Session
-from core.database import UserCertificate, AEATSubmission, User
+from database import UserCertificate, AEATSubmission, User
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 
-from core.database import VerifactuChainRecord, Invoice
+from database import VerifactuChainRecord, Invoice
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
