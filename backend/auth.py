@@ -1,11 +1,12 @@
 import base64
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, validator, Field
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from jose import jwt, JWTError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from typing import Optional
 import re
 import hmac
 import hashlib
@@ -48,7 +49,116 @@ class UserCreate(BaseModel):
         if not re.match(r'^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]+$', v):
             raise ValueError('Password must contain only Latin letters, digits, and special characters')
         return v
+class ProfileUpdate(BaseModel):
+    """Schema for updating profile (personal information only)"""
+    full_name: Optional[str] = Field(None, max_length=100)
+    phone_number: Optional[str] = Field(None, max_length=20)
+    date_of_birth: Optional[date] = None
+    family_status: Optional[str] = Field(None, max_length=20)
+    num_children: Optional[int] = Field(None, ge=0, le=20)
+    
+    # Address
+    street_address: Optional[str] = Field(None, max_length=300)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    province: Optional[str] = Field(None, max_length=100)
+    region: Optional[str] = Field(None, max_length=50)
+    country: Optional[str] = Field(None, max_length=50)
+    
+    # Fiscal
+    nif: Optional[str] = Field(None, max_length=15)
+    tax_regime: Optional[str] = Field(None, max_length=50)
+    business_address: Optional[str] = Field(None, max_length=300)
+    
+    @validator('phone_number')
+    def validate_phone(cls, v):
+        if v and not re.match(r'^[+]?[\d\s\-()]{6,20}$', v):
+            raise ValueError('Invalid phone number format')
+        return v
+    
+    @validator('postal_code')
+    def validate_postal_code(cls, v):
+        if v and not re.match(r'^\d{5}$', v):
+            raise ValueError('Spanish postal code must be 5 digits')
+        return v
+    
+    @validator('nif')
+    def validate_nif(cls, v):
+        if v:
+            v = v.upper().strip()
+            if not re.match(r'^[0-9]{8}[A-Z]$|^[XYZ][0-9]{7}[A-Z]$|^[ABCDEFGHJNPQRSUVW][0-9]{7}[A-Z0-9]$', v):
+                raise ValueError('Invalid NIF/NIE/CIF format')
+        return v
 
+
+class ProfileResponse(BaseModel):
+    """Response schema for profile data"""
+    id: int
+    email: str
+    full_name: Optional[str]
+    phone_number: Optional[str]
+    date_of_birth: Optional[date]
+    family_status: Optional[str]
+    num_children: Optional[int]
+    
+    # Address
+    street_address: Optional[str]
+    city: Optional[str]
+    postal_code: Optional[str]
+    province: Optional[str]
+    region: Optional[str]
+    country: Optional[str]
+    
+    # Fiscal
+    nif: Optional[str]
+    tax_regime: Optional[str]
+    business_address: Optional[str]
+    
+    # Meta
+    created_at: datetime
+    updated_at: Optional[datetime]
+    
+    class Config:
+        from_attributes = True
+
+
+class SettingsUpdate(BaseModel):
+    """Schema for updating settings (consents & preferences)"""
+    marketing_consent: Optional[bool] = None
+    terms_accepted: Optional[bool] = None  # Will set terms_accepted_at
+    privacy_accepted: Optional[bool] = None  # Will set privacy_accepted_at
+    kyc_consent: Optional[bool] = None
+    email_notifications: Optional[bool] = None
+    deadline_reminders: Optional[bool] = None
+
+
+class SettingsResponse(BaseModel):
+    """Response schema for settings data"""
+    # Consents
+    marketing_consent: bool
+    terms_accepted_at: Optional[datetime]
+    privacy_accepted_at: Optional[datetime]
+    kyc_consent: bool
+    
+    # Notification preferences
+    email_notifications: bool
+    deadline_reminders: bool
+    
+    # KYC status (read-only)
+    verified_kyc: bool
+    kyc_verified_at: Optional[datetime]
+    
+    # Subscription info (read-only)
+    subscription_status: Optional[str]
+    subscription_end_date: Optional[datetime]
+    
+    # Certificate status (read-only)
+    has_certificate: bool
+    certificate_valid_until: Optional[datetime]
+    
+    class Config:
+        from_attributes = True
+        
 class UserUpdate(BaseModel):
     family_status: str | None = None
     num_children: int | None = None
@@ -145,20 +255,131 @@ def update_profile(update_data: UserUpdate, current_user: User = Depends(get_cur
     db.refresh(current_user)
     return {"message": "Profile updated successfully", "user": {"full_name": current_user.full_name, "family_status": current_user.family_status, "num_children": current_user.num_children, "region": current_user.region}}
 
-@router.get("/profile", response_model=dict)
+@router.get("/profile", response_model=ProfileResponse)
 def get_profile(current_user: User = Depends(get_current_user)):
-    return {
-        "id": current_user.id,
-        "full_name": current_user.full_name,
-        "email": current_user.email,
-        "family_status": current_user.family_status,
-        "num_children": current_user.num_children,
-        "region": current_user.region,
-        "city": current_user.city,  
-        "business_address": current_user.business_address,  
-        "created_at": current_user.created_at,
-        "stripe_customer_id": current_user.stripe_customer_id  
-    }
+    """Get user profile (personal information)"""
+    return ProfileResponse(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        phone_number=current_user.phone_number,
+        date_of_birth=current_user.date_of_birth,
+        family_status=current_user.family_status,
+        num_children=current_user.num_children,
+        street_address=current_user.street_address,
+        city=current_user.city,
+        postal_code=current_user.postal_code,
+        province=current_user.province,
+        region=current_user.region,
+        country=current_user.country or 'ES',
+        nif=current_user.nif,
+        tax_regime=current_user.tax_regime,
+        business_address=current_user.business_address,
+        created_at=current_user.created_at,
+        updated_at=current_user.updated_at
+    )
+
+
+@router.patch("/profile", response_model=ProfileResponse)
+def update_profile(
+    update_data: ProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user profile (personal information only)"""
+    update_dict = update_data.dict(exclude_unset=True)
+    
+    # Apply updates
+    for field, value in update_dict.items():
+        setattr(current_user, field, value)
+    
+    current_user.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(current_user)
+    
+    return get_profile(current_user)
+
+
+@router.get("/settings", response_model=SettingsResponse)
+def get_settings(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user settings (consents, preferences, account status)"""
+    # Check certificate status
+    cert = current_user.certificate
+    has_cert = cert is not None and cert.is_active
+    cert_valid = cert.valid_until if has_cert else None
+    
+    return SettingsResponse(
+        marketing_consent=current_user.marketing_consent or False,
+        terms_accepted_at=current_user.terms_accepted_at,
+        privacy_accepted_at=current_user.privacy_accepted_at,
+        kyc_consent=current_user.kyc_consent or False,
+        email_notifications=current_user.email_notifications if current_user.email_notifications is not None else True,
+        deadline_reminders=current_user.deadline_reminders if current_user.deadline_reminders is not None else True,
+        verified_kyc=current_user.verified_kyc or False,
+        kyc_verified_at=current_user.kyc_verified_at,
+        subscription_status=current_user.subscription_status,
+        subscription_end_date=current_user.subscription_end_date,
+        has_certificate=has_cert,
+        certificate_valid_until=cert_valid
+    )
+
+
+@router.patch("/settings", response_model=SettingsResponse)
+def update_settings(
+    update_data: SettingsUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user settings (consents & preferences)"""
+    update_dict = update_data.dict(exclude_unset=True)
+    
+    # Handle consent timestamps
+    if update_dict.get('terms_accepted') is True:
+        current_user.terms_accepted_at = datetime.utcnow()
+        del update_dict['terms_accepted']
+    elif 'terms_accepted' in update_dict:
+        del update_dict['terms_accepted']
+        
+    if update_dict.get('privacy_accepted') is True:
+        current_user.privacy_accepted_at = datetime.utcnow()
+        del update_dict['privacy_accepted']
+    elif 'privacy_accepted' in update_dict:
+        del update_dict['privacy_accepted']
+    
+    # Apply remaining updates
+    for field, value in update_dict.items():
+        setattr(current_user, field, value)
+    
+    current_user.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(current_user)
+    
+    return get_settings(current_user, db)
+
+
+@router.post("/settings/change-password", response_model=dict)
+def change_password(
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change user password"""
+    if not verify_password(current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    if len(new_password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    
+    current_user.hashed_password = get_password_hash(new_password)
+    current_user.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Password changed successfully"}
+
     
 @router.post("/kyc", response_model=dict)
 async def kyc_verify(

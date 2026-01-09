@@ -24,26 +24,45 @@ class User(Base):
     full_name = Column(String(100), index=True)
     email = Column(String(255), unique=True, index=True)
     hashed_password = Column(String(255))
+    
+    phone_number = Column(String(20), nullable=True, index=True)
+    date_of_birth = Column(Date, nullable=True)
     family_status = Column(String(20))  
     num_children = Column(Integer, default=0)
-    business_address = Column(String(300), nullable=True)
+    
+    street_address = Column(String(300), nullable=True)
+    postal_code = Column(String(10), nullable=True)
+    province = Column(String(100), nullable=True)
     city = Column(String(100), nullable=True)
     region = Column(String(50), index=True)
-    nie_dni = Column(String(20), nullable=True)  
+    
+    nie_dni = Column(String(20), nullable=True)
+    nif = Column(String(15))  
+    registration_date = Column(Date) 
+    business_address = Column(String(300), nullable=True)
+    tax_regime = Column(String(50), nullable=True) 
+    
+    marketing_consent = Column(Boolean, default=False)
+    terms_accepted_at = Column(DateTime, nullable=True)
+    privacy_accepted_at = Column(DateTime, nullable=True)
+    kyc_consent = Column(Boolean, default=False)
+    
+    email_notifications = Column(Boolean, default=True)
+    deadline_reminders = Column(Boolean, default=True)
+     
     verified_kyc = Column(Boolean, default=False)  
     veriff_session_id = Column(String(100), nullable=True)  
     veriff_status = Column(String(50), nullable=True)       
     kyc_verified_at = Column(DateTime, nullable=True)       
-    kyc_skipped = Column(Boolean, default=False)           
+    kyc_skipped = Column(Boolean, default=False) 
+              
     stripe_customer_id = Column(String(255), nullable=True)
     stripe_subscription_id = Column(String(255), nullable=True)
     subscription_status = Column(String(50), nullable=True)
     subscription_end_date = Column(DateTime, nullable=True)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    nif = Column(String(15))  
-    registration_date = Column(Date) 
-
     
     # Relationships
     bank_account = relationship("BankAccount", back_populates="user", uselist=False)

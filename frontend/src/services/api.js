@@ -46,13 +46,72 @@ export const register = async (full_name, email, password) => {
   return response.data;
 };
 
+// ============== PROFILE API  ==============
+
 export const getProfile = async () => {
   const response = await api.get('/auth/profile');
   return response.data;
 };
 
 export const updateProfile = async (data) => {
-  const response = await api.patch('/auth/profile', data);
+  const payload = {
+    full_name: data.fullName,
+    phone_number: data.phoneNumber,
+    date_of_birth: data.dateOfBirth,
+    family_status: data.familyStatus,
+    num_children: data.numChildren,
+    street_address: data.streetAddress,
+    city: data.city,
+    postal_code: data.postalCode,
+    province: data.province,
+    region: data.region,
+    country: data.country,
+    nif: data.nif,
+    tax_regime: data.taxRegime,
+    business_address: data.businessAddress,
+  };
+  
+  Object.keys(payload).forEach(key => 
+    payload[key] === undefined && delete payload[key]
+  );
+  
+  const response = await api.patch('/auth/profile', payload);
+  return response.data;
+};
+
+// ============== SETTINGS API  ==============
+
+export const getSettings = async () => {
+  const response = await api.get('/auth/settings');
+  return response.data;
+};
+
+export const updateSettings = async (data) => {
+  const payload = {
+    marketing_consent: data.marketingConsent,
+    terms_accepted: data.termsAccepted,
+    privacy_accepted: data.privacyAccepted,
+    kyc_consent: data.kycConsent,
+    email_notifications: data.emailNotifications,
+    deadline_reminders: data.deadlineReminders,
+  };
+  
+  Object.keys(payload).forEach(key => 
+    payload[key] === undefined && delete payload[key]
+  );
+  
+  const response = await api.patch('/auth/settings', payload);
+  return response.data;
+};
+
+export const changePassword = async (currentPassword, newPassword) => {
+  const formData = new FormData();
+  formData.append('current_password', currentPassword);
+  formData.append('new_password', newPassword);
+  
+  const response = await api.post('/auth/settings/change-password', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
 
@@ -585,24 +644,6 @@ export const submitInvoiceToAEAT = async (invoiceId, useSandbox = true) => {
  * @param {number} reportId - Report ID to submit
  * @param {boolean} useSandbox - Use sandbox environment (default: true)
  */
-export const submitReportToAEAT = async (reportId, useSandbox = true) => {
-  const response = await api.post(`/aeat/submit/report/${reportId}`, null, {
-    params: { use_sandbox: useSandbox },
-  });
-  return response.data;
-};
-
-/**
- * Get AEAT submission history
- * @param {number} limit - Max number of results (default: 20)
- * @param {string} submissionType - Filter by 'invoice' or 'report' (optional)
- */
-export const getAEATSubmissionHistory = async (limit = 20, submissionType = null) => {
-  const params = { limit };
-  if (submissionType) params.submission_type = submissionType;
-  
-  const response = await api.get('/aeat/submissions/history', { params });
-  return response.data;
-};
+export const submitReportToAEAT = async (reportId, useSandbox = true)
 
 export default api;
