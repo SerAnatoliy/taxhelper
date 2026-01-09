@@ -50,7 +50,6 @@ class UserCreate(BaseModel):
             raise ValueError('Password must contain only Latin letters, digits, and special characters')
         return v
 class ProfileUpdate(BaseModel):
-    """Schema for updating profile (personal information only)"""
     full_name: Optional[str] = Field(None, max_length=100)
     phone_number: Optional[str] = Field(None, max_length=20)
     date_of_birth: Optional[date] = None
@@ -92,7 +91,6 @@ class ProfileUpdate(BaseModel):
 
 
 class ProfileResponse(BaseModel):
-    """Response schema for profile data"""
     id: int
     email: str
     full_name: Optional[str]
@@ -123,17 +121,15 @@ class ProfileResponse(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
-    """Schema for updating settings (consents & preferences)"""
     marketing_consent: Optional[bool] = None
-    terms_accepted: Optional[bool] = None  # Will set terms_accepted_at
-    privacy_accepted: Optional[bool] = None  # Will set privacy_accepted_at
+    terms_accepted: Optional[bool] = None  
+    privacy_accepted: Optional[bool] = None  
     kyc_consent: Optional[bool] = None
     email_notifications: Optional[bool] = None
     deadline_reminders: Optional[bool] = None
 
 
 class SettingsResponse(BaseModel):
-    """Response schema for settings data"""
     # Consents
     marketing_consent: bool
     terms_accepted_at: Optional[datetime]
@@ -178,7 +174,6 @@ class UserUpdate(BaseModel):
             raise ValueError('Invalid region. Must be one of Spain\'s autonomous communities')
         return v
 
-# Auth Config
 AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -186,7 +181,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# Auth Functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -218,7 +212,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credentials_exception
     return user
 
-# Endpoints
 @router.post("/register", response_model=Token)
 def register(user_create: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user_create.email).first()
@@ -257,7 +250,6 @@ def update_profile(update_data: UserUpdate, current_user: User = Depends(get_cur
 
 @router.get("/profile", response_model=ProfileResponse)
 def get_profile(current_user: User = Depends(get_current_user)):
-    """Get user profile (personal information)"""
     return ProfileResponse(
         id=current_user.id,
         email=current_user.email,
@@ -286,7 +278,6 @@ def update_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update user profile (personal information only)"""
     update_dict = update_data.dict(exclude_unset=True)
     
     # Apply updates
@@ -305,8 +296,6 @@ def get_settings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get user settings (consents, preferences, account status)"""
-    # Check certificate status
     cert = current_user.certificate
     has_cert = cert is not None and cert.is_active
     cert_valid = cert.valid_until if has_cert else None
@@ -333,10 +322,8 @@ def update_settings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update user settings (consents & preferences)"""
     update_dict = update_data.dict(exclude_unset=True)
     
-    # Handle consent timestamps
     if update_dict.get('terms_accepted') is True:
         current_user.terms_accepted_at = datetime.utcnow()
         del update_dict['terms_accepted']
@@ -349,7 +336,6 @@ def update_settings(
     elif 'privacy_accepted' in update_dict:
         del update_dict['privacy_accepted']
     
-    # Apply remaining updates
     for field, value in update_dict.items():
         setattr(current_user, field, value)
     
@@ -367,7 +353,6 @@ def change_password(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Change user password"""
     if not verify_password(current_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     
